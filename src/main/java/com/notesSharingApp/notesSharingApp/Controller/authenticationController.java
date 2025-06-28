@@ -18,6 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.notesSharingApp.notesSharingApp.Service.jwtService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -73,23 +76,24 @@ public class authenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody loginDTO loginDto) {
-        user user = null;
-        jsonResponse jsonResponse = new jsonResponse();
+    public ResponseEntity<List<Object>> login(@RequestBody loginDTO loginDto) {
+         user user = null;
+         jsonResponse jsonResponse = new jsonResponse();
+         List<Object> objectList = new ArrayList<>();
          try {
               user =  authenticationService.login(loginDto);
               String token = jwtService.generateToken(user);
               jsonResponse.setMessage(token);
               jsonResponse.setHttpStatusCode(HttpStatus.OK);
-              return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+              objectList.add(user);
+              objectList.add(jsonResponse);
+              return new ResponseEntity<>(objectList, HttpStatus.OK);
         }catch (RuntimeException e) {
-             if(e instanceof AccountIsDisabled){
-
-             }
              System.out.println(e.getMessage());
              jsonResponse.setMessage(e.getMessage());
              jsonResponse.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-             return new ResponseEntity<>(jsonResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+             objectList.add(jsonResponse);
+             return new ResponseEntity<>(objectList,HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
      }

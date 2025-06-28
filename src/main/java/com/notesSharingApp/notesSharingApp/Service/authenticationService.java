@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 @Service
 public class authenticationService {
-    private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    private final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private final String[] departments = {"CS","CE"};
     @Autowired
     private authenticationRepo authenticationRepo;

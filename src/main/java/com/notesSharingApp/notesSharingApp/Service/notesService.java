@@ -69,4 +69,10 @@ public class notesService {
     }
 
 
+    public List<notesDTO> getSubjectNotes(String subjectID) {
+        List<Note> notes = notesRepo.findBySubjectID(subjectID);
+        return notes.stream().filter(note ->
+                note.isApproved() && note.getRemarks() == null)
+                .map(notesService::getNotesDTO).toList();
+    }
 }

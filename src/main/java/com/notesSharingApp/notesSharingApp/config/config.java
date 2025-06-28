@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class config {
 
     @Autowired
@@ -33,10 +35,9 @@ public class config {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth->{
-                auth.requestMatchers("/v1/home/public").hasAnyRole("STUDENT","ADMIN");
                 auth.requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.GET,"/v1/admin/**").hasRole("ADMIN");
-                auth.requestMatchers("/v1/notes").authenticated();
+                auth.requestMatchers("/v1/notes/uploadNote").hasRole("STUDENT");
                 auth.requestMatchers("/v1/auth/resendVerificationCode").hasRole("STUDENT")
                 .anyRequest().permitAll();
         })

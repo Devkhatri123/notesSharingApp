@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.notesService;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/notes")
@@ -24,9 +25,11 @@ public class notesController {
 
     @Autowired
     private notesService notesService;
+    @Autowired
+    adminController adminController;
 
-    @PostMapping(value = "/",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> home(@RequestPart(value = "thumbnail") MultipartFile thumbnail,
+    @PostMapping(value = "/uploadNote",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadNotes(@RequestPart(value = "thumbnail") MultipartFile thumbnail,
                                @RequestPart(value = "notes") MultipartFile notes,
                                @RequestPart Note note
 
@@ -45,7 +48,8 @@ public class notesController {
             return new ResponseEntity<>(jsonResponse,jsonResponse.getHttpStatusCode());
         }
     }
-
-    @GetMapping("/admin")
-    public String AdminHome(){return "Admin home page";}
+    @GetMapping("/")
+    public List<notesDTO> getSubjectNotes(@RequestParam String subjectID){
+        return notesService.getSubjectNotes(subjectID);
+    }
 }
