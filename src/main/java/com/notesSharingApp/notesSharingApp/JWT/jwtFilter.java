@@ -1,0 +1,66 @@
+package com.notesSharingApp.notesSharingApp.JWT;
+
+import com.notesSharingApp.notesSharingApp.model.user;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import com.notesSharingApp.notesSharingApp.Service.jwtService;
+import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
+
+import java.io.IOException;
+import java.security.SignatureException;
+
+@Component
+public class jwtFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private jwtService jwtService;
+    @Autowired
+    private userdetailsService userdetailsService;
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String header = request.getHeader("Authorization");
+        String username = null;
+        String token = null;
+
+        if(header != null && header.startsWith("Bearer")){
+            token = header.substring(7);
+            try{
+                username = jwtService.extractUsername(token);
+
+            } catch (IllegalArgumentException e){
+                e.printStackTrace();
+            }catch (ExpiredJwtException e){
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }catch (MalformedJwtException e){
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+            catch (Exception e){
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        }
+       if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+           userdetails user = userdetailsService.loadUserByUsername(username);
+            boolean validateToken = jwtService.isTokenValid(token,user);
+            if(validateToken){
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user,null,user.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+       }
+       filterChain.doFilter(request,response);
+    }
+}
