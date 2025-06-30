@@ -2,8 +2,11 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 
 import com.notesSharingApp.notesSharingApp.model.Subject;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.subjectRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,5 +21,16 @@ public class subjectService {
     }
     public Subject getSubjectByCode(String Code){
         return subjectRepo.findByCode(Code);
+    }
+
+    public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
+        userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return getAllSubject().stream().filter(subject ->
+        (authenticatedUser.getUser().getDepartment().equals(subject.getDepartment()) &&
+        subject.getSemester() == authenticatedUser.getUser().getSemester()) ||
+        (subject.getDepartment().equals("All") &&
+        subject.getSemester() == authenticatedUser.getUser().getSemester())).toList();
+
     }
 }

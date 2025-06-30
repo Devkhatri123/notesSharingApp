@@ -34,11 +34,12 @@ public class config {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
-                .authorizeHttpRequests(auth->{
-                auth.requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN");
-                auth.requestMatchers(HttpMethod.GET,"/v1/admin/**").hasRole("ADMIN");
-                auth.requestMatchers("/v1/notes/uploadNote").hasRole("STUDENT");
-                auth.requestMatchers("/v1/auth/resendVerificationCode").hasRole("STUDENT")
+                .authorizeHttpRequests(auth->{ auth
+                .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/v1/notes/admin/ApprovalPendingNotes").hasRole("ADMIN")
+                .requestMatchers("/v1/notes/uploadNote").hasRole("STUDENT")
+                .requestMatchers("/v1/auth/resendVerificationCode").hasRole("STUDENT")
                 .anyRequest().permitAll();
         })
                 .sessionManagement(session ->

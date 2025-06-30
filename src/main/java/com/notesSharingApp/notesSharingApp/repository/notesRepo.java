@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface notesRepo extends JpaRepository<Note, UUID> {
+public interface notesRepo extends JpaRepository<Note, String> {
     public List<Note> findByisApproved(boolean isApproved);
     @Query("select n from Note n where n.subject.code=:code")
     public List<Note> findBySubjectID(@Param("code") String code);

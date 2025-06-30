@@ -39,5 +39,54 @@ public class emailService {
       emailSender.send(message);
 
   }
+  public void sendRemarkNotification(String to,String body) throws MessagingException {
+      String subject = "Notes Remark Request";
+      String html = "<html lang=\"en\">\n" +
+              "<head>\n" +
+              "  <meta charset=\"UTF-8\">\n" +
+              "  <title>Update Notes Request</title>\n" +
+              "</head>\n" +
+              "<body style=\"background: #f4f6fa; margin: 0; padding: 0; font-family: Arial, sans-serif;\">\n" +
+              "  <div style=\"background: #fff; max-width: 600px; margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;\">\n" +
+              "    <div style=\"background: #2563eb; color: #fff; padding: 24px 32px; text-align: center;\">\n" +
+              "      <h2 style=\"margin: 0; font-size: 24px;\">Action Required: Update Your Uploaded Notes</h2>\n" +
+              "    </div>\n" +
+              "    <div style=\"padding: 32px; color: #333; line-height: 1.6;\">\n" +
+              "      <p style=\"margin-top: 0;\">Dear <strong>[Student Name]</strong>,</p>\n" +
+              "      <p>\n" +
+              "        Thank you for submitting your notes for <strong>[Subject Name]</strong>. After reviewing your submission, we have identified some issues that require your attention:\n" +
+              "      </p>\n" +
+              "      <ul style=\"padding-left: 20px; margin: 16px 0;\">\n" +
+              "       <p>"+body+"</p>" +
+              "        <!-- Add more list items as needed -->\n" +
+              "      </ul>\n" +
+              "      <p>\n" +
+              "        Please review and update your notes accordingly. You have <strong>[X days]</strong> to make the necessary changes and resubmit.\n" +
+              "      </p>\n" +
+              "      <a href=\"[Link to Update Page]\" \n" +
+              "         style=\"display: inline-block; background: #2563eb; color: #fff !important; padding: 12px 28px; margin: 24px 0; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 16px;\">\n" +
+              "         Update My Notes\n" +
+              "      </a>\n" +
+              "      <p>\n" +
+              "        If you have any questions or need clarification, please reply to this email.\n" +
+              "      </p>\n" +
+              "      <p style=\"margin-bottom: 0;\">Best regards,<br>\n" +
+              "      [Admin Name/Team]</p>\n" +
+              "    </div>\n" +
+              "    <div style=\"background: #f0f0f0; color: #888; text-align: center; padding: 16px 32px; font-size: 13px;\">\n" +
+              "      &copy; 2025 [Your Web App Name]. All rights reserved.\n" +
+              "    </div>\n" +
+              "  </div>\n" +
+              "</body>\n" +
+              "</html>\n";
+
+      MimeMessage message = emailSender.createMimeMessage();
+      MimeMessageHelper messageHelper = new MimeMessageHelper(message,true);
+
+      messageHelper.setTo(to);
+      messageHelper.setSubject(subject);
+      messageHelper.setText(html,true);
+
+  }
 
 }

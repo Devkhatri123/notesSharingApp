@@ -32,6 +32,7 @@ public class Subject {
     private String code;
     @Column(name = "short_description")
     private String shortDescription;
+    private String department;
 
     private LocalDateTime createdAt;
     @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL)

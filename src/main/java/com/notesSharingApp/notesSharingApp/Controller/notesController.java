@@ -4,20 +4,19 @@ package com.notesSharingApp.notesSharingApp.Controller;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.model.Note;
-import com.notesSharingApp.notesSharingApp.model.Subject;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.notesService;
+import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/v1/notes")
@@ -25,8 +24,6 @@ public class notesController {
 
     @Autowired
     private notesService notesService;
-    @Autowired
-    adminController adminController;
 
     @PostMapping(value = "/uploadNote",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadNotes(@RequestPart(value = "thumbnail") MultipartFile thumbnail,
@@ -51,5 +48,31 @@ public class notesController {
     @GetMapping("/")
     public List<notesDTO> getSubjectNotes(@RequestParam String subjectID){
         return notesService.getSubjectNotes(subjectID);
+    }
+    @GetMapping("/note/{noteID}")
+    public ResponseEntity<?> getNote(@PathVariable String noteID){
+        try {
+            return new ResponseEntity<>(notesService.getNote(noteID),HttpStatus.FOUND);
+        } catch (NoSuchElementException e) {
+            jsonResponse response = new jsonResponse();
+            response.setMessage(e.getMessage());
+            response.setHttpStatusCode(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(response,response.getHttpStatusCode());
+        } catch (RuntimeException e) {
+            jsonResponse response = new jsonResponse();
+            response.setMessage(e.getMessage());
+            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response,response.getHttpStatusCode());
+        }
+    }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("admin/ApprovalPendingNotes")
+    public List<notesDTO> getApprovalPendingNotes(){
+        return notesService.getApprovalPendingNotes();
+    }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("admin/sendRemarkForNote")
+    public void sendRemark(@RequestBody RemakRequest request){
+         notesService.sendRemark(request);
     }
 }

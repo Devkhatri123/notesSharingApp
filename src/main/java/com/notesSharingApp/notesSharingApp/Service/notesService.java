@@ -1,10 +1,12 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
+import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import com.notesSharingApp.notesSharingApp.model.Subject;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,9 +18,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class notesService {
@@ -28,6 +28,8 @@ public class notesService {
 
     @Autowired
     private notesRepo notesRepo;
+    @Autowired
+    private emailService emailService;
 
 
     public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException {
@@ -63,7 +65,9 @@ public class notesService {
         notesDto.setCreatedAt(n.getCreatedAt());
         notesDto.setThumbnail(n.getImgThumbNail());
         notesDto.setNotes(n.getNotePdfData());
+        notesDto.setRemarks(n.getRemarks());
         notesDto.setSubject(n.getSubject());
+        notesDto.setApproved(n.isApproved());
         notesDto.setCreatedBy(userDTOWithoutNotes);
         return notesDto;
     }
@@ -71,8 +75,32 @@ public class notesService {
 
     public List<notesDTO> getSubjectNotes(String subjectID) {
         List<Note> notes = notesRepo.findBySubjectID(subjectID);
-        return notes.stream().filter(note ->
-                note.isApproved() && note.getRemarks() == null)
-                .map(notesService::getNotesDTO).toList();
+        List<notesDTO> notesDTOList = notes.stream().map(notesService::getNotesDTO).toList();
+        return notesDTOList.stream().filter(notesDTO -> {
+            return notesDTO.isApproved() && notesDTO.getRemarks() == null;
+        }).toList();
+    }
+
+    public Note getNote(String noteID) throws RuntimeException {
+       Optional<Note> note = notesRepo.findById(noteID);
+       if(!note.isPresent()){
+           throw new NoSuchElementException("This note doesn't exists");
+       }
+
+       if(!note.get().isApproved() && note.get().getRemarks() != null){
+           throw new RuntimeException("This note is not available right now");
+       }
+       return note.get();
+    }
+    public List<notesDTO> getApprovalPendingNotes() {
+        List<Note> allNotes = notesRepo.findByisApproved(false);
+        return allNotes.stream().map(notesService::getNotesDTO).toList();
+    }
+
+    public void sendRemark(RemakRequest request) {
+
+    }
+    private void sendRemarkEmail(String to,String message) throws MessagingException {
+        emailService.sendRemarkNotification(to,message);
     }
 }

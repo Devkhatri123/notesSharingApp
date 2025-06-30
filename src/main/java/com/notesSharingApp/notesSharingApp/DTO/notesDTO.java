@@ -16,6 +16,8 @@ public class notesDTO {
     private String description;
     private String createdAt;
     private userDTOWithoutNotes createdBy;
+    private boolean isApproved;
+    private String remarks;
     private Subject subject;
     private byte[] thumbnail;
     private byte[] notes;
