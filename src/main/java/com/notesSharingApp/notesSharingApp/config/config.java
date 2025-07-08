@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.config;
 
+import com.notesSharingApp.notesSharingApp.JWT.AuthEntryPoint;
 import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.notesSharingApp.notesSharingApp.JWT.jwtFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -28,12 +32,21 @@ public class config {
     @Autowired
     userdetailsService userdetailsService;
 
+//    @Autowired
+//    jwtFilter jwtFilter;
+
     @Autowired
-    jwtFilter jwtFilter;
+    private AuthEntryPoint authEntryPoint;
+    @Bean
+    public jwtFilter jwtFilter() {
+        return new jwtFilter();
+    }
+
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .authorizeHttpRequests(auth->{ auth
                 .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/v1/admin/**").hasRole("ADMIN")
@@ -44,7 +57,7 @@ public class config {
         })
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
     @Bean
@@ -61,5 +74,16 @@ public class config {
         auth.setUserDetailsService(userdetailsService);
         auth.setPasswordEncoder(passwordEncoder());
         return auth;
+    }
+    @Bean
+    public WebMvcConfigurer corsConfigurer(){
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+               registry.addMapping("/v1/subject/**")
+                        .allowedOrigins("http://localhost:5173/")
+                        .allowedMethods("GET");
+            }
+        };
     }
 }

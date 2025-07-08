@@ -3,6 +3,7 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
+import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
@@ -76,24 +77,21 @@ public class authenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<List<Object>> login(@RequestBody loginDTO loginDto) {
+    public ResponseEntity<?> login(@RequestBody loginDTO loginDto) {
          user user = null;
          jsonResponse jsonResponse = new jsonResponse();
-         List<Object> objectList = new ArrayList<>();
          try {
-              user =  authenticationService.login(loginDto);
+              user = authenticationService.login(loginDto);
               String token = jwtService.generateToken(user);
               jsonResponse.setMessage(token);
               jsonResponse.setHttpStatusCode(HttpStatus.OK);
-              objectList.add(user);
-              objectList.add(jsonResponse);
-              return new ResponseEntity<>(objectList, HttpStatus.OK);
+              return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
         }catch (RuntimeException e) {
+             e.printStackTrace();
              System.out.println(e.getMessage());
              jsonResponse.setMessage(e.getMessage());
              jsonResponse.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-             objectList.add(jsonResponse);
-             return new ResponseEntity<>(objectList,HttpStatus.INTERNAL_SERVER_ERROR);
+             return new ResponseEntity<>(jsonResponse,HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
      }
@@ -118,5 +116,9 @@ public class authenticationController {
             response.setHttpStatusCode(HttpStatus.OK);
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
+    }
+
+    public userDTOWithoutNotes getUserData(@PathVariable  String email){
+    return null;
     }
 }

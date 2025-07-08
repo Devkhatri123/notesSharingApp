@@ -8,14 +8,12 @@ import com.notesSharingApp.notesSharingApp.model.Subject;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.repository.notesRepo;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,7 +23,6 @@ public class notesService {
 
     @Autowired
     private subjectService subjectService;
-
     @Autowired
     private notesRepo notesRepo;
     @Autowired
@@ -46,6 +43,7 @@ public class notesService {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
       n.setCreatedAt(LocalDateTime.now().format(formatter));
       notesRepo.save(n);
+      sendForApproval(n);
 
     }
 
@@ -56,7 +54,6 @@ public class notesService {
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
         userDTOWithoutNotes.setName(n.getCreatedBy().getFullname());
         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
-        userDTOWithoutNotes.setUniversityEmail(n.getCreatedBy().getUniversityEmail());
         userDTOWithoutNotes.setEmail(n.getCreatedBy().getEmail());
 
         notesDto.setId(n.getId());
@@ -97,10 +94,25 @@ public class notesService {
         return allNotes.stream().map(notesService::getNotesDTO).toList();
     }
 
-    public void sendRemark(RemakRequest request) {
-
+    public void sendRemark(RemakRequest request) throws MessagingException {
+     Optional<Note> note = notesRepo.findById(request.getId());
+     if(!note.isPresent()){
+         throw new NoSuchElementException("note doesn't exists");
+     }
+     Note foundNote = note.get();
+     foundNote.setRemarks(request.getMessage());
+     foundNote.setApproved(false);
+     notesRepo.save(foundNote);
+     sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getEmail(), request.getMessage());
     }
-    private void sendRemarkEmail(String to,String message) throws MessagingException {
-        emailService.sendRemarkNotification(to,message);
+    private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
+        emailService.sendRemarkNotification(fullname,subject,to,message);
+    }
+    private void sendForApproval(Note note){
+//        ApproveNote approveNote = new ApproveNote();
+//        approveNote.setNote(note);
+//
+//        approveNoteRepo.save(approveNote);
+
     }
 }

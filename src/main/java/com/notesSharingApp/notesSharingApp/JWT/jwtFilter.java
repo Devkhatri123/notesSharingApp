@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.JWT;
 
+import com.google.gson.Gson;
 import com.notesSharingApp.notesSharingApp.model.user;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -7,7 +8,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
@@ -16,19 +19,30 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.notesSharingApp.notesSharingApp.Service.jwtService;
 import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class jwtFilter extends OncePerRequestFilter {
+
+
 
     @Autowired
     private jwtService jwtService;
     @Autowired
     private userdetailsService userdetailsService;
+
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
+
+    
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
         String header = request.getHeader("Authorization");
         String username = null;
         String token = null;
@@ -37,17 +51,15 @@ public class jwtFilter extends OncePerRequestFilter {
             token = header.substring(7);
             try{
                 username = jwtService.extractUsername(token);
-
             } catch (IllegalArgumentException e){
                 e.printStackTrace();
             }catch (ExpiredJwtException e){
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                resolver.resolveException(request,response,null,e);
+                return;
             }catch (MalformedJwtException e){
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            catch (Exception e){
+                resolver.resolveException(request,response,null,e);
+                return;
+            }catch (Exception e){
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }

@@ -43,23 +43,13 @@ public class authenticationService {
             throw new RuntimeException("Email is not valid");
         }else if(!Arrays.stream(departments).anyMatch(user.getDepartment()::equals)){
             throw new RuntimeException(user.getDepartment() +" department is not available right now");
-        }else if(!containsOnlyDigits(user.getUniversityEmail())){
-            throw new RuntimeException("Roll number should contain only numbers");
-        }else if(!isValidRollNumber(user)){
-            throw new RuntimeException("Roll number is not valid");
-        }
-        else if(authenticationRepo.findByuniversityEmail(user.getUniversityEmail()) != null){
-            throw new RuntimeException("Roll number is already taken");
         }else if(authenticationRepo.findByContact(user.getContact()) != null){
             throw new RuntimeException("Phone number is already taken");
         }else if (authenticationRepo.findByemail(user.getEmail()) != null){
             throw new RuntimeException("Email is already taken");
         }
 
-
-
-
-        // set UUId,encode password,role("student") and disable account until verification is done
+         // set UUId,encode password,role("student") and disable account until verification is done
         user.setId(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(false);
@@ -133,19 +123,12 @@ public class authenticationService {
         sendVerificationCode(user.getEmail(),user.getVerificationCode());
         authenticationRepo.save(user);
   }
-    private boolean containsOnlyDigits(String roll) {
-        return roll.matches("\\d+");
-    }
-    private boolean isValidRollNumber(user user){
-        final String RollNumberRegex = "^" + user.getDepartment() + "\\d{2}(0[1-9]|1[0-2])\\d{2}$";
-        user.setUniversityEmail(user.getDepartment() + user.getUniversityEmail());
-        Pattern pattern = Pattern.compile(RollNumberRegex);
-        Matcher matcher = pattern.matcher(user.getUniversityEmail());
-        return matcher.matches();
-    }
-    private boolean isValidEmail(String email){
+
+
+    private boolean isValidEmail(String email) {
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
+
 }

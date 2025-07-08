@@ -25,12 +25,7 @@ public class subjectService {
 
     public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
         userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return getAllSubject().stream().filter(subject ->
-        (authenticatedUser.getUser().getDepartment().equals(subject.getDepartment()) &&
-        subject.getSemester() == authenticatedUser.getUser().getSemester()) ||
-        (subject.getDepartment().equals("All") &&
-        subject.getSemester() == authenticatedUser.getUser().getSemester())).toList();
+        return getAllSubject();
 
     }
 }

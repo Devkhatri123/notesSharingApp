@@ -4,6 +4,7 @@ package com.notesSharingApp.notesSharingApp.Controller;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.model.Note;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -71,8 +72,18 @@ public class notesController {
         return notesService.getApprovalPendingNotes();
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("admin/sendRemarkForNote")
-    public void sendRemark(@RequestBody RemakRequest request){
-         notesService.sendRemark(request);
+    @PostMapping("admin/sendRemarkForNote")
+    public jsonResponse sendRemark(@RequestBody RemakRequest request) {
+        jsonResponse response = new jsonResponse();
+        try {
+            notesService.sendRemark(request);
+            response.setMessage("Remark sent successfully");
+            response.setHttpStatusCode(HttpStatus.OK);
+        } catch (MessagingException e) {
+            response.setMessage(e.getMessage());
+            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return response;
     }
+
 }

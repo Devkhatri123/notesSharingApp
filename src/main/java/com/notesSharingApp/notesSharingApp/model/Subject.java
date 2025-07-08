@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class Subject {
+public class Subject implements Serializable {
     @Column(name="subject_id")
     private String subjectId;
     @Column(name = "subject_name",length = 100)

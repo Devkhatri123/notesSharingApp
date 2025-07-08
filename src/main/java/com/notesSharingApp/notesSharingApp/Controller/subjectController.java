@@ -13,7 +13,6 @@ import com.notesSharingApp.notesSharingApp.Service.subjectService;
 
 
 @RestController
-@PreAuthorize("hasRole('ROLE_STUDENT')")
 @RequestMapping("v1/subject")
 public class subjectController {
 
@@ -23,7 +22,7 @@ public class subjectController {
     public ResponseEntity<?> getAllSubjectOfUserDepartment(){
         jsonResponse response = new jsonResponse();
         try {
-            return new ResponseEntity<>(subjectService.getAllSubjectOfUserDepartmentAndSemester(),HttpStatus.FOUND);
+            return new ResponseEntity<>(subjectService.getAllSubject(),HttpStatus.OK);
         } catch (RuntimeException e) {
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.BAD_REQUEST);

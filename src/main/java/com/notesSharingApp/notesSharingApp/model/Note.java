@@ -8,16 +8,18 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
-public class Note {
+@Entity
+public class Note implements Serializable {
     @Id
     @Column(name = "note_id")
     private String id;
@@ -26,6 +28,7 @@ public class Note {
     @Transient
     private String subjectCode;
     private boolean isApproved;
+    @Column(length = 512)
     private String remarks;
     private String createdAt;
     private String updatedAt;

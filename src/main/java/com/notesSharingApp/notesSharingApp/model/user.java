@@ -11,6 +11,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,12 +22,12 @@ import java.util.List;
 @ToString
 @Component
 @Entity
-public class user {
+public class user implements Serializable {
     @Id
     private String id;
+    @Column(length = 50)
     private String fullname;
     private String gender;
-    private String universityEmail;
     private String email;
     private int semester;
     private String department;
