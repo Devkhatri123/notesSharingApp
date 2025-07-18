@@ -1,10 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
-import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
-import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
-import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
+import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
@@ -12,15 +9,21 @@ import com.notesSharingApp.notesSharingApp.Service.authenticationService;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.model.user;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import com.notesSharingApp.notesSharingApp.Service.jwtService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -37,22 +40,22 @@ public class authenticationController {
 
     @PostMapping("/signUp")
     public ResponseEntity<?> signUp(@RequestBody user user) {
-        jsonResponse response = new jsonResponse();
+       Map<String,Object> response = new HashMap<>();
         try {
             authenticationService.register(user);
-            response.setMessage("Registration successful. Verification code sent to your email");
-            response.setHttpStatusCode(HttpStatus.CREATED);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            response.put("message","Registration successful. Verification code sent to your university web mail");
+            response.put("status",HttpStatus.CREATED.value());
+            return ResponseEntity.ok().body(response);
         } catch (MessagingException e) {
-            response.setMessage("Something went wrong");
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("message","Something went wrong");
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             e.printStackTrace();
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(response);
         } catch (RuntimeException e) {
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("message","Something went wrong");
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             e.printStackTrace();
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().body(response);
         }
 
     }
@@ -77,21 +80,18 @@ public class authenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody loginDTO loginDto) {
-         user user = null;
-         jsonResponse jsonResponse = new jsonResponse();
+    public ResponseEntity<?> login(@RequestBody loginDTO loginDto, HttpServletResponse res) {
+         Map<String,Object> response = new HashMap<>();
          try {
-              user = authenticationService.login(loginDto);
-              String token = jwtService.generateToken(user);
-              jsonResponse.setMessage(token);
-              jsonResponse.setHttpStatusCode(HttpStatus.OK);
-              return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
+              authenticationService.login(loginDto,res);
+              response.put("isLoggedIn",true);
+              response.put("Status",200);
+              return ResponseEntity.ok(response);
         }catch (RuntimeException e) {
              e.printStackTrace();
-             System.out.println(e.getMessage());
-             jsonResponse.setMessage(e.getMessage());
-             jsonResponse.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-             return new ResponseEntity<>(jsonResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+             response.put("message",e.getMessage());
+             response.put("Status",HttpStatus.BAD_REQUEST.value());
+             return ResponseEntity.badRequest().body(response);
         }
 
      }
@@ -117,8 +117,8 @@ public class authenticationController {
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
     }
-
-    public userDTOWithoutNotes getUserData(@PathVariable  String email){
-    return null;
-    }
+     @GetMapping("/loggedInUser")
+     public userDTOWithoutNotes getLoggedInUser(){
+        return authenticationService.getLoggedInUser();
+  }
 }

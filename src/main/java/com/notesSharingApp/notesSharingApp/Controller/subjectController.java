@@ -13,7 +13,7 @@ import com.notesSharingApp.notesSharingApp.Service.subjectService;
 
 
 @RestController
-@RequestMapping("v1/subject")
+@RequestMapping("/v1/subject")
 public class subjectController {
 
     @Autowired

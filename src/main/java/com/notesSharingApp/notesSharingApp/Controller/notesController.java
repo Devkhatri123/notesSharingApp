@@ -3,10 +3,12 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
+import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +18,9 @@ import com.notesSharingApp.notesSharingApp.Service.notesService;
 import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -32,23 +36,36 @@ public class notesController {
                                @RequestPart Note note
 
     ){
-        jsonResponse jsonResponse = new jsonResponse();
-        try {
+        Map<String,Object> response = new HashMap<>();
+         try {
             notesService.uploadNote(thumbnail,notes,note);
-            jsonResponse.setMessage("Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
-            jsonResponse.setHttpStatusCode(HttpStatus.OK);
-            return new ResponseEntity<>(jsonResponse,HttpStatus.OK);
+            response.put("message","Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
+            response.put("status",HttpStatus.CREATED.value());
+            return ResponseEntity.created(null).body(response);
         }catch (IOException e) {
             e.printStackTrace();
-            System.out.println("error = " + e.getMessage());
-            jsonResponse.setMessage(e.getMessage());
-            jsonResponse.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            return new ResponseEntity<>(jsonResponse,jsonResponse.getHttpStatusCode());
+
+            response.put("message",e.getMessage());
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return ResponseEntity.internalServerError().body(response);
+        } catch (RuntimeException e) {
+            response.put("message",e.getMessage());
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return ResponseEntity.internalServerError().body(response);
         }
     }
-    @GetMapping("/")
-    public List<notesDTO> getSubjectNotes(@RequestParam String subjectID){
-        return notesService.getSubjectNotes(subjectID);
+    @GetMapping
+    public ResponseEntity<?> getSubjectNotes(@RequestParam String subjectID){
+        jsonResponse response = new jsonResponse();
+        try {
+        return new ResponseEntity<>( notesService.getSubjectNotes(subjectID), HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            response.setMessage("Internal Server Error");
+            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>(response, response.getHttpStatusCode());
+        }
     }
     @GetMapping("/note/{noteID}")
     public ResponseEntity<?> getNote(@PathVariable String noteID){
@@ -86,4 +103,19 @@ public class notesController {
         return response;
     }
 
+   @PreAuthorize("hasRole('ROLE_ADMIN')")
+   @PostMapping("/{noteID}/approve")
+   public ResponseEntity<?> approveNote(@PathVariable String noteID){
+        jsonResponse response = new jsonResponse();
+        try {
+            notesService.approveNote(noteID);
+            response.setMessage("Note approved!!!");
+            response.setHttpStatusCode(HttpStatus.OK);
+            return new ResponseEntity<>(response,response.getHttpStatusCode());
+        }catch (NoteNotFound e){
+            response.setMessage(e.getMessage());
+            response.setHttpStatusCode(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(response,response.getHttpStatusCode());
+        }
+   }
 }

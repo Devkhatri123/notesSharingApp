@@ -28,14 +28,16 @@ public class user implements Serializable {
     @Column(length = 50)
     private String fullname;
     private String gender;
-    private String email;
+    @Column(length = 20,unique = true)
+    private String universityEmail;
     private int semester;
     private String department;
     private String contact;
-    @JsonIgnore
     private String password;
     @Column(name = "isEnabled")
     private boolean isEnabled;
+    @Column(name = "isEmailVerified")
+    private boolean isEmailVerified;
     private String role;
     private int verificationCode;
     @JsonSerialize(using = LocalDateTimeSerializer.class)

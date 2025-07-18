@@ -3,11 +3,13 @@ package com.notesSharingApp.notesSharingApp.Service;
 import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
+import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import com.notesSharingApp.notesSharingApp.model.Subject;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +31,19 @@ public class notesService {
     private emailService emailService;
 
 
+
     public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        userdetails object = null;
+        if(authentication != null && authentication.isAuthenticated()) {
+             object = (userdetails) authentication.getPrincipal();
+            if(!object.getUser().isEmailVerified()){
+                throw new RuntimeException("Your email is not verified. You are not allowed to upload the notes");
+            }
+
+        }
+
+
       Subject subject = subjectService.getSubjectByCode(n.getSubjectCode());
       if(subject == null){
           throw new RuntimeException("Subject not found Against selected code");
@@ -54,7 +68,6 @@ public class notesService {
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
         userDTOWithoutNotes.setName(n.getCreatedBy().getFullname());
         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
-        userDTOWithoutNotes.setEmail(n.getCreatedBy().getEmail());
 
         notesDto.setId(n.getId());
         notesDto.setTitle(n.getTitle());
@@ -73,9 +86,7 @@ public class notesService {
     public List<notesDTO> getSubjectNotes(String subjectID) {
         List<Note> notes = notesRepo.findBySubjectID(subjectID);
         List<notesDTO> notesDTOList = notes.stream().map(notesService::getNotesDTO).toList();
-        return notesDTOList.stream().filter(notesDTO -> {
-            return notesDTO.isApproved() && notesDTO.getRemarks() == null;
-        }).toList();
+        return notesDTOList;
     }
 
     public Note getNote(String noteID) throws RuntimeException {
@@ -103,7 +114,7 @@ public class notesService {
      foundNote.setRemarks(request.getMessage());
      foundNote.setApproved(false);
      notesRepo.save(foundNote);
-     sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getEmail(), request.getMessage());
+     sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
     }
     private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
         emailService.sendRemarkNotification(fullname,subject,to,message);
@@ -114,5 +125,17 @@ public class notesService {
 //
 //        approveNoteRepo.save(approveNote);
 
+    }
+
+    public void approveNote(String id) throws NoteNotFound {
+     Optional<Note> note = notesRepo.findById(id);
+     if(note.isPresent()){
+        Note n = note.get();
+        n.setRemarks(null);
+        n.setApproved(true);
+        notesRepo.save(n);
+        return;
+     }
+     throw new NoteNotFound("Note not found");
     }
 }

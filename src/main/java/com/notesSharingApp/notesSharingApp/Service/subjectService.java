@@ -17,7 +17,7 @@ public class subjectService {
     private subjectRepo subjectRepo;
 
     public List<Subject> getAllSubject(){
-        return subjectRepo.findAll();
+        return subjectRepo.findByLimitedSubject();
     }
     public Subject getSubjectByCode(String Code){
         return subjectRepo.findByCode(Code);
@@ -26,6 +26,5 @@ public class subjectService {
     public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
         userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return getAllSubject();
-
-    }
+ }
 }

@@ -25,10 +25,10 @@ public class jwtService {
 
     public String generateToken(user user){
         Map<String,String> claim = new HashMap<>();
-        claim.put("email",user.getEmail());
+        claim.put("email",user.getUniversityEmail());
         claim.put("role",user.getRole());
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(user.getUniversityEmail())
                 .issuedAt(new Date())
                 .claims(claim)
                 .expiration(new Date(System.currentTimeMillis() + 600000))
@@ -55,7 +55,7 @@ public class jwtService {
     }
     public boolean isTokenValid(String token, userdetails user){
         String username = extractUsername(token);
-        return (username.equals(user.getUser().getEmail()) && !isTokenExpired(token));
+        return (username.equals(user.getUser().getUniversityEmail()) && !isTokenExpired(token));
     }
     private Claims extractClaims(String token){
        return Jwts.parser()

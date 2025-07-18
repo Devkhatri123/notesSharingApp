@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode
 @Entity
 public class Note implements Serializable {
@@ -35,7 +34,7 @@ public class Note implements Serializable {
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private user createdBy;
     @Column(name = "note_thumbnail",columnDefinition = "LONGBLOB")

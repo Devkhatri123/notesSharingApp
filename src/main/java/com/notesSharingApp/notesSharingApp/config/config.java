@@ -5,6 +5,7 @@ import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -20,9 +21,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.notesSharingApp.notesSharingApp.JWT.jwtFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -46,14 +53,15 @@ public class config {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
+                .cors(Customizer.withDefaults())
+             //   .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .authorizeHttpRequests(auth->{ auth
                 .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET,"/v1/admin/**").hasRole("ADMIN")
-                .requestMatchers("/v1/notes/admin/ApprovalPendingNotes").hasRole("ADMIN")
-                .requestMatchers("/v1/notes/uploadNote").hasRole("STUDENT")
-                .requestMatchers("/v1/auth/resendVerificationCode").hasRole("STUDENT")
-                .anyRequest().permitAll();
+                .requestMatchers("v1/auth/**").permitAll()
+                .requestMatchers("/v1/notes").permitAll()
+                .requestMatchers("/v1/notes/note/{noteID}").permitAll()
+                 .requestMatchers("/v1/subject/all").permitAll()
+                .anyRequest().authenticated();
         })
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -76,14 +84,30 @@ public class config {
         return auth;
     }
     @Bean
-    public WebMvcConfigurer corsConfigurer(){
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-               registry.addMapping("/v1/subject/**")
-                        .allowedOrigins("http://localhost:5173/")
-                        .allowedMethods("GET");
-            }
-        };
+    public CorsConfigurationSource corsConfigurationSource(){
+        final CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedHeaders(List.of(
+                HttpHeaders.AUTHORIZATION,
+                HttpHeaders.CONTENT_TYPE,
+                HttpHeaders.ACCEPT));
+        configuration.setAllowedMethods(List.of("GET","POST"));
+        configuration.setAllowCredentials(true);
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
+//    @Bean
+//    public WebMvcConfigurer corsConfigurer(){
+//        return new WebMvcConfigurer() {
+//            @Override
+//            public void addCorsMappings(CorsRegistry registry) {
+//               registry.addMapping("/v1/**")
+//                         .allowedHeaders("*")
+//                         .allowedOrigins("http://localhost:5173")
+//                         .allowedMethods("GET")
+//                         .allowedMethods("POST");
+//            }
+//        };
+//    }
 }

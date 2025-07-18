@@ -14,6 +14,10 @@ public class userDTOWithoutNotes {
     private String id;
     private String name;
     private String universityEmail;
-    private String email;
     private int semester;
+    private String department;
+    private String role;
+    private boolean isEnabled;
+    private boolean isEmailVerified;
+
 }

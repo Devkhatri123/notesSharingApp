@@ -20,7 +20,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode
 public class Subject implements Serializable {
     @Column(name="subject_id")
@@ -36,7 +35,7 @@ public class Subject implements Serializable {
     private String department;
 
     private LocalDateTime createdAt;
-    @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Note> notes;
 }
