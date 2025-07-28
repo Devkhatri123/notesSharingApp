@@ -3,13 +3,16 @@ package com.notesSharingApp.notesSharingApp.Service;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
-import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
+import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
+import com.notesSharingApp.notesSharingApp.model.Status;
 import com.notesSharingApp.notesSharingApp.model.user;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
+import com.notesSharingApp.notesSharingApp.repository.UserUpdateRequest;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -19,10 +22,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.notesSharingApp.notesSharingApp.repository.authenticationRepo;
+import com.notesSharingApp.notesSharingApp.model.TempUser;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -45,21 +49,25 @@ public class authenticationService {
     private userdetailsService userdetailsService;
     @Autowired
     private jwtService jwtService;
+    @Autowired
+    private UserUpdateRequest userUpdateRequest;
+    @Autowired
+    private ModelMapper modelMapper;
 
 
     public void register(user user) throws MessagingException,RuntimeException {
         if(!isValidEmail(user.getUniversityEmail())){
             throw new RuntimeException("University email is not valid");
+        }else if (authenticationRepo.findByuniversityEmail(user.getUniversityEmail()) != null){
+            throw new RuntimeException("Email is already taken");
         }else if(!Arrays.stream(departments).anyMatch(user.getDepartment()::equals)){
             throw new RuntimeException(user.getDepartment() +" department is not available right now");
-        }else if(authenticationRepo.findByContact(user.getContact()) != null){
+        }else if(authenticationRepo.findBycontact(user.getContact()) != null){
             throw new RuntimeException("Phone number is already taken");
         }
-//        else if (authenticationRepo.findByemail(user.getEmail()) != null){
-//            throw new RuntimeException("Email is already taken");
-//        }
 
-         // set UUId,encode password,role("student") and disable account until verification is done
+
+        // set UUId,encode password,role("student") and disable account until verification is done
         user.setId(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEnabled(true);
@@ -87,6 +95,9 @@ public class authenticationService {
     }
 
     public void verify(verificationDTO verificationDTO) throws VerificationCodeExpired,RuntimeException {
+        if(verificationDTO.getEmail() == null){
+            throw new RuntimeException("Email not provided");
+        }
         user user = authenticationRepo.findByuniversityEmail(verificationDTO.getEmail());
         if(user != null){
             if(!user.isEmailVerified()){
@@ -98,11 +109,12 @@ public class authenticationService {
                     user.setEmailVerified(true);
                     user.setVerificationCode(0);
                     user.setExpirationAt(null);
-
                     authenticationRepo.save(user);
+                }else{
+                    throw new RuntimeException("Verification code doesn't match");
                 }
             }else{
-                throw new RuntimeException("user is already verified");
+                throw new AccountVerified("user is already verified");
             }
         }else{
             throw new RuntimeException("user doesn't exists");
@@ -115,7 +127,7 @@ public class authenticationService {
         }
         user user =  authenticationRepo.findByuniversityEmail(loginDto.getEmail());
         if(user == null){
-          throw new RuntimeException("No User found");
+          throw new RuntimeException("Account doesn't exist");
         }
         boolean isCorrect = passwordEncoder.matches(loginDto.getPassword(),user.getPassword());
         if(isCorrect) {
@@ -151,37 +163,74 @@ public class authenticationService {
         return matcher.matches();
     }
 
-    public userDTOWithoutNotes getLoggedInUser() {
+    public userdetails getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null && authentication.isAuthenticated()){
-            userdetails object = (userdetails) authentication.getPrincipal();
-
-            final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
-
-            userDTOWithoutNotes.setId(object.getUser().getId());
-            userDTOWithoutNotes.setName(object.getUser().getFullname());
-            userDTOWithoutNotes.setUniversityEmail(object.getUser().getUniversityEmail());
-            userDTOWithoutNotes.setSemester(object.getUser().getSemester());
-            userDTOWithoutNotes.setDepartment(object.getUser().getDepartment());
-            userDTOWithoutNotes.setEnabled(object.isEnabled());
-            userDTOWithoutNotes.setRole(object.getUser().getRole());
-            userDTOWithoutNotes.setUniversityEmail(object.getUser().getUniversityEmail());
-            userDTOWithoutNotes.setEmailVerified(object.getUser().isEmailVerified());
-
-            return userDTOWithoutNotes;
-         }
+            if((authentication.getPrincipal() instanceof String)){
+                return null;
+            }
+            return (userdetails) authentication.getPrincipal();
+ }
         return null;
     }
     private void setJwtInCookies(String token, HttpServletResponse response){
         ResponseCookie cookie = ResponseCookie.from("jwt",token)
+                .secure(false)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
                 .path("/")
-                .maxAge(Duration.ofDays(1))
+                .domain("localhost")
+                .maxAge(3600)
                 .build();
+                response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
+    }
+    public userDTOWithoutNotes convertUserModelToDTO(user user){
+        final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
-        response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
+        userDTOWithoutNotes.setId(user.getId());
+        userDTOWithoutNotes.setName(user.getFullname());
+        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
+        userDTOWithoutNotes.setSemester(user.getSemester());
+        userDTOWithoutNotes.setDepartment(user.getDepartment());
+        userDTOWithoutNotes.setEnabled(user.isEnabled());
+        userDTOWithoutNotes.setRole(user.getRole());
+        userDTOWithoutNotes.setPhone(user.getContact());
+        userDTOWithoutNotes.setGender(user.getGender());
+        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
+        userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());
+
+        return userDTOWithoutNotes;
     }
 
+    public void logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("jwt")
+                .secure(false)
+                .value("")
+                .httpOnly(true)
+                .maxAge(0)
+                .path("/")
+                .domain("localhost")
+                .build();
+        response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
+    }
+    public void updateUser(String userId,userDTOWithoutNotes user) throws RuntimeException{
+
+        if(!isValidEmail(user.getUniversityEmail())){
+             throw new RuntimeException("Email is not valid");
+        }
+      Optional<user> dbUser = authenticationRepo.findById(userId);
+      if(dbUser.isPresent()){
+          TempUser tempUser = ConvertToUserUpdateRequest(user);
+          tempUser.setRemarks("Pending Review");
+          tempUser.setAccountStatus(Status.Pending);
+          userUpdateRequest.save(tempUser);
+          user u = dbUser.get();
+          u.setEnabled(false);
+          authenticationRepo.save(u);
+      }else {
+          throw new RuntimeException("No user in Db");
+      }
+    }
+    public TempUser ConvertToUserUpdateRequest(userDTOWithoutNotes user){
+       return modelMapper.map(user, TempUser.class);
+    }
 }

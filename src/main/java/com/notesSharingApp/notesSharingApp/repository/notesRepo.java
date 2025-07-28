@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.repository;
 
+import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,9 @@ import java.util.UUID;
 
 @Repository
 public interface notesRepo extends JpaRepository<Note, String> {
-    public List<Note> findByisApproved(boolean isApproved);
+    //public List<Note> findByisApproved(boolean isApproved);
     @Query("select n from Note n where n.subject.code=:code")
     public List<Note> findBySubjectID(@Param("code") String code);
+    @Query("select n from Note n where n.createdBy.id=:userId")
+    public List<Note> findBycreatedBy(String userId);
 }

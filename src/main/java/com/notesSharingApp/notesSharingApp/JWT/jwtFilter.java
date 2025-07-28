@@ -62,9 +62,9 @@ public class jwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-        if(token != null) {
+       if(token != null) {
             try {
-                username = jwtService.extractUsername(token);
+             username = jwtService.extractUsername(token);
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             } catch (ExpiredJwtException e) {

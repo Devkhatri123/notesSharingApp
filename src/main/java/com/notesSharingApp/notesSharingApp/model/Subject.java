@@ -35,7 +35,7 @@ public class Subject implements Serializable {
     private String department;
 
     private LocalDateTime createdAt;
-    @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> notes;
 }

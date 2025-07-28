@@ -1,32 +1,30 @@
 package com.notesSharingApp.notesSharingApp.model;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 @Entity
+@ToString
 public class Note implements Serializable {
     @Id
     @Column(name = "note_id")
     private String id;
     private String title;
+    @Column(length = 300)
     private String description;
     @Transient
     private String subjectCode;
-    private boolean isApproved;
+    @Enumerated(EnumType.STRING)
+    private Status status;
     @Column(length = 512)
     private String remarks;
     private String createdAt;
@@ -41,4 +39,6 @@ public class Note implements Serializable {
     private byte[] imgThumbNail;
     @Column(columnDefinition = "LONGBLOB")
     private byte[] notePdfData;
+    private String thumbnailFilename;
+    private String pdfNoteFilename;
 }

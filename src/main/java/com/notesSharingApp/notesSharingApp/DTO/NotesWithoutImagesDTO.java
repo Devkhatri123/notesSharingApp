@@ -1,4 +1,5 @@
 package com.notesSharingApp.notesSharingApp.DTO;
+
 import com.notesSharingApp.notesSharingApp.model.Subject;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,15 +10,12 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class notesDTO {
+public class NotesWithoutImagesDTO {
     private String id;
     private String title;
     private String description;
     private String createdAt;
-    private userDTOWithoutNotes createdBy;
     private String status;
     private String remarks;
     private Subject subject;
-    private byte[] thumbnail;
-    private byte[] notes;
 }

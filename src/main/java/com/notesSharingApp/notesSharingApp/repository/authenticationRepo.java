@@ -9,6 +9,6 @@ import java.util.UUID;
 @Repository
 public interface authenticationRepo extends JpaRepository<user, String> {
     public user findByuniversityEmail(String universityEmail);
-    public user findByContact(String phone);
+    public user findBycontact(String phone);
 
 }

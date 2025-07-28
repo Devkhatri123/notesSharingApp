@@ -5,6 +5,8 @@ import com.notesSharingApp.notesSharingApp.model.Subject;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.subjectRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,15 +18,16 @@ public class subjectService {
     @Autowired
     private subjectRepo subjectRepo;
 
-    public List<Subject> getAllSubject(){
-        return subjectRepo.findByLimitedSubject();
+    public List<Subject> getAllSubject(Integer pageNumber,Integer limit){
+         Page<Subject> subjects = subjectRepo.findAll(PageRequest.of(pageNumber,limit));
+         return subjects.getContent();
     }
     public Subject getSubjectByCode(String Code){
         return subjectRepo.findByCode(Code);
     }
 
-    public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
-        userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return getAllSubject();
- }
+//    public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
+//        userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        return getAllSubject();
+// }
 }

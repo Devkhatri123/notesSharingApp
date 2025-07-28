@@ -2,6 +2,7 @@ package com.notesSharingApp.notesSharingApp.config;
 
 import com.notesSharingApp.notesSharingApp.JWT.AuthEntryPoint;
 import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,9 +40,6 @@ public class config {
     @Autowired
     userdetailsService userdetailsService;
 
-//    @Autowired
-//    jwtFilter jwtFilter;
-
     @Autowired
     private AuthEntryPoint authEntryPoint;
     @Bean
@@ -53,13 +51,16 @@ public class config {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
+
                 .cors(Customizer.withDefaults())
-             //   .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
+
+               .exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
                 .authorizeHttpRequests(auth->{ auth
                 .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
-                .requestMatchers("v1/auth/**").permitAll()
+                .requestMatchers("v1/auth/signUp").permitAll()
+                .requestMatchers("v1/auth/login").permitAll()
                 .requestMatchers("/v1/notes").permitAll()
-                .requestMatchers("/v1/notes/note/{noteID}").permitAll()
+                 .requestMatchers("/v1/notes/note/{noteID}").permitAll()
                  .requestMatchers("/v1/subject/all").permitAll()
                 .anyRequest().authenticated();
         })
@@ -91,23 +92,14 @@ public class config {
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT));
-        configuration.setAllowedMethods(List.of("GET","POST"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT"));
         configuration.setAllowCredentials(true);
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-//    @Bean
-//    public WebMvcConfigurer corsConfigurer(){
-//        return new WebMvcConfigurer() {
-//            @Override
-//            public void addCorsMappings(CorsRegistry registry) {
-//               registry.addMapping("/v1/**")
-//                         .allowedHeaders("*")
-//                         .allowedOrigins("http://localhost:5173")
-//                         .allowedMethods("GET")
-//                         .allowedMethods("POST");
-//            }
-//        };
-//    }
+    @Bean
+    public ModelMapper modelMapper(){
+        return new ModelMapper();
+    }
 }

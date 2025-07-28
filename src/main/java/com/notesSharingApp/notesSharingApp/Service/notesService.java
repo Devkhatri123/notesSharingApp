@@ -1,13 +1,16 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
+import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
 import com.notesSharingApp.notesSharingApp.model.Note;
+import com.notesSharingApp.notesSharingApp.model.Status;
 import com.notesSharingApp.notesSharingApp.model.Subject;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +32,8 @@ public class notesService {
     private notesRepo notesRepo;
     @Autowired
     private emailService emailService;
+    @Autowired
+    private ModelMapper modelMapper;
 
 
 
@@ -42,8 +47,6 @@ public class notesService {
             }
 
         }
-
-
       Subject subject = subjectService.getSubjectByCode(n.getSubjectCode());
       if(subject == null){
           throw new RuntimeException("Subject not found Against selected code");
@@ -53,7 +56,11 @@ public class notesService {
       userdetails authenticatedUser = (userdetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       n.setCreatedBy(authenticatedUser.getUser());
       n.setImgThumbNail(thumbnail.getBytes());
+      n.setThumbnailFilename(thumbnail.getOriginalFilename());
       n.setNotePdfData(notes.getBytes());
+      n.setPdfNoteFilename(notes.getOriginalFilename());
+      n.setStatus(Status.Pending);
+      n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
       n.setCreatedAt(LocalDateTime.now().format(formatter));
       notesRepo.save(n);
@@ -77,7 +84,7 @@ public class notesService {
         notesDto.setNotes(n.getNotePdfData());
         notesDto.setRemarks(n.getRemarks());
         notesDto.setSubject(n.getSubject());
-        notesDto.setApproved(n.isApproved());
+        notesDto.setStatus(n.getStatus().name());
         notesDto.setCreatedBy(userDTOWithoutNotes);
         return notesDto;
     }
@@ -85,7 +92,10 @@ public class notesService {
 
     public List<notesDTO> getSubjectNotes(String subjectID) {
         List<Note> notes = notesRepo.findBySubjectID(subjectID);
-        List<notesDTO> notesDTOList = notes.stream().map(notesService::getNotesDTO).toList();
+        List<notesDTO> notesDTOList = notes.stream().map(notesService::getNotesDTO).toList()
+                .stream().filter(notesDTO -> {
+                    return notesDTO.getStatus().equals("Approved") && notesDTO.getRemarks() == null;
+                }).toList();
         return notesDTOList;
     }
 
@@ -95,14 +105,14 @@ public class notesService {
            throw new NoSuchElementException("This note doesn't exists");
        }
 
-       if(!note.get().isApproved() && note.get().getRemarks() != null){
+       if(!note.get().getStatus().name().equals("Approved") && note.get().getRemarks() != null){
            throw new RuntimeException("This note is not available right now");
        }
        return note.get();
     }
     public List<notesDTO> getApprovalPendingNotes() {
-        List<Note> allNotes = notesRepo.findByisApproved(false);
-        return allNotes.stream().map(notesService::getNotesDTO).toList();
+       // List<Note> allNotes = notesRepo.findByisApproved(false);
+        return null;
     }
 
     public void sendRemark(RemakRequest request) throws MessagingException {
@@ -112,7 +122,7 @@ public class notesService {
      }
      Note foundNote = note.get();
      foundNote.setRemarks(request.getMessage());
-     foundNote.setApproved(false);
+     foundNote.setStatus(Status.Pending);
      notesRepo.save(foundNote);
      sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
     }
@@ -127,15 +137,23 @@ public class notesService {
 
     }
 
+    public List<NotesWithoutImagesDTO> myNotes(String userId){
+      List<Note> notes = notesRepo.findBycreatedBy(userId);
+      return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
+    }
+
     public void approveNote(String id) throws NoteNotFound {
      Optional<Note> note = notesRepo.findById(id);
      if(note.isPresent()){
         Note n = note.get();
         n.setRemarks(null);
-        n.setApproved(true);
+        n.setStatus(Status.Approved);
         notesRepo.save(n);
         return;
      }
      throw new NoteNotFound("Note not found");
+    }
+    private NotesWithoutImagesDTO convertToNotesWithoutImagesDTO(Note n){
+       return modelMapper.map(n,NotesWithoutImagesDTO.class);
     }
 }

@@ -31,7 +31,7 @@ public class jwtService {
                 .subject(user.getUniversityEmail())
                 .issuedAt(new Date())
                 .claims(claim)
-                .expiration(new Date(System.currentTimeMillis() + 600000))
+                .expiration(new Date(System.currentTimeMillis() + 3600000))
                 .signWith(generateKey(), Jwts.SIG.HS256)
                 .compact();
     }

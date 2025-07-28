@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.notesSharingApp.notesSharingApp.Service.subjectService;
 
@@ -19,10 +20,10 @@ public class subjectController {
     @Autowired
     private subjectService subjectService;
     @GetMapping("/all")
-    public ResponseEntity<?> getAllSubjectOfUserDepartment(){
+    public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize){
         jsonResponse response = new jsonResponse();
         try {
-            return new ResponseEntity<>(subjectService.getAllSubject(),HttpStatus.OK);
+            return new ResponseEntity<>(subjectService.getAllSubject(pageNumber, pageSize),HttpStatus.OK);
         } catch (RuntimeException e) {
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.BAD_REQUEST);

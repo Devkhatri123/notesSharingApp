@@ -1,6 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
+import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
@@ -30,10 +31,11 @@ public class notesController {
     @Autowired
     private notesService notesService;
 
-    @PostMapping(value = "/uploadNote",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadNotes(@RequestPart(value = "thumbnail") MultipartFile thumbnail,
+    @PostMapping(value = "/uploadNote",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> uploadNotes(
+                               @RequestPart(value = "thumbnail") MultipartFile thumbnail,
                                @RequestPart(value = "notes") MultipartFile notes,
-                               @RequestPart Note note
+                               @RequestPart(value = "note") Note note
 
     ){
         Map<String,Object> response = new HashMap<>();
@@ -43,12 +45,10 @@ public class notesController {
             response.put("status",HttpStatus.CREATED.value());
             return ResponseEntity.created(null).body(response);
         }catch (IOException e) {
-            e.printStackTrace();
-
-            response.put("message",e.getMessage());
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
-            return ResponseEntity.internalServerError().body(response);
-        } catch (RuntimeException e) {
+             response.put("message",e.getMessage());
+             response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+             return ResponseEntity.internalServerError().body(response);
+        }catch (RuntimeException e) {
             response.put("message",e.getMessage());
             response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             return ResponseEntity.internalServerError().body(response);
@@ -70,7 +70,7 @@ public class notesController {
     @GetMapping("/note/{noteID}")
     public ResponseEntity<?> getNote(@PathVariable String noteID){
         try {
-            return new ResponseEntity<>(notesService.getNote(noteID),HttpStatus.FOUND);
+            return new ResponseEntity<>(notesService.getNote(noteID),HttpStatus.OK);
         } catch (NoSuchElementException e) {
             jsonResponse response = new jsonResponse();
             response.setMessage(e.getMessage());
@@ -101,6 +101,11 @@ public class notesController {
             response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
+    }
+
+    @GetMapping("/myNotes")
+    public List<NotesWithoutImagesDTO> getMyNotes(@RequestParam String userId){
+        return notesService.myNotes(userId);
     }
 
    @PreAuthorize("hasRole('ROLE_ADMIN')")
