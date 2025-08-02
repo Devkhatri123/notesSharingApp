@@ -1,18 +1,21 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
-import com.notesSharingApp.notesSharingApp.DTO.*;
-import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
+import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
+import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
+import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
+import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
 import com.notesSharingApp.notesSharingApp.Service.authenticationService;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
+import com.notesSharingApp.notesSharingApp.model.TempUser;
 import com.notesSharingApp.notesSharingApp.model.user;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -136,17 +139,17 @@ public class authenticationController {
          response.put("Status",404);
          return ResponseEntity.ok(response);
   }
-   @GetMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse res){
         authenticationService.logout(res);
         Map<String,Object> response = new HashMap<>();
-        response.put("message","You have been loggedOut");
-        response.put("status",200);
+        response.put("user",null);
         response.put("isLoggedIn",false);
+        response.put("Status",200);
         return ResponseEntity.ok(response);
    }
        @PutMapping("/{userId}")
-       public ResponseEntity<?> updateUser(@RequestBody userDTOWithoutNotes user,@PathVariable  String userId){
+       public ResponseEntity<?> updateUser(@RequestBody TempUser user, @PathVariable  String userId){
         Map<String,Object> response = new HashMap<>();
         try {
             authenticationService.updateUser(userId, user);

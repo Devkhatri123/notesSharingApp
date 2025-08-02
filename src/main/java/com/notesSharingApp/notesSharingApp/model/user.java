@@ -43,7 +43,7 @@ public class user implements Serializable {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDateTime expirationAt;
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> myNotes;
 }

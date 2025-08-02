@@ -10,7 +10,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
-public class RemakRequest {
+public class RemarkRequest {
     private String id;
     private String message;
 }

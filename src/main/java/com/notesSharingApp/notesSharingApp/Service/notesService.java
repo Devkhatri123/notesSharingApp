@@ -1,6 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
+import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
@@ -12,6 +12,7 @@ import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class notesService {
@@ -44,6 +46,8 @@ public class notesService {
              object = (userdetails) authentication.getPrincipal();
             if(!object.getUser().isEmailVerified()){
                 throw new RuntimeException("Your email is not verified. You are not allowed to upload the notes");
+            }else if(!object.getUser().isEnabled()){
+                throw new RuntimeException("Your account is disabled.You are not allowed to upload the notes");
             }
 
         }
@@ -92,11 +96,10 @@ public class notesService {
 
     public List<notesDTO> getSubjectNotes(String subjectID) {
         List<Note> notes = notesRepo.findBySubjectID(subjectID);
-        List<notesDTO> notesDTOList = notes.stream().map(notesService::getNotesDTO).toList()
+        return notes.stream().map(notesService::getNotesDTO).toList()
                 .stream().filter(notesDTO -> {
-                    return notesDTO.getStatus().equals("Approved") && notesDTO.getRemarks() == null;
+                    return notesDTO.getStatus().equals("Approved");
                 }).toList();
-        return notesDTOList;
     }
 
     public Note getNote(String noteID) throws RuntimeException {
@@ -111,18 +114,20 @@ public class notesService {
        return note.get();
     }
     public List<notesDTO> getApprovalPendingNotes() {
-       // List<Note> allNotes = notesRepo.findByisApproved(false);
-        return null;
-    }
+        List<Note> allNotes = notesRepo.findAll();
+        return allNotes.stream().map(notesService::getNotesDTO).toList()
+                .stream().filter(noteDTO -> noteDTO.getStatus()
+                        .equals("Pending")).toList();
+     }
 
-    public void sendRemark(RemakRequest request) throws MessagingException {
+    public void sendRemark(RemarkRequest request) throws MessagingException {
      Optional<Note> note = notesRepo.findById(request.getId());
      if(!note.isPresent()){
          throw new NoSuchElementException("note doesn't exists");
      }
      Note foundNote = note.get();
      foundNote.setRemarks(request.getMessage());
-     foundNote.setStatus(Status.Pending);
+     foundNote.setStatus(Status.Declined);
      notesRepo.save(foundNote);
      sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
     }
@@ -137,8 +142,9 @@ public class notesService {
 
     }
 
-    public List<NotesWithoutImagesDTO> myNotes(String userId){
-      List<Note> notes = notesRepo.findBycreatedBy(userId);
+    public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
+        if(status.equals("All")) return getNotes(userId,pageNumber, limit);
+        List<Note> notes = notesRepo.findNotesBycreatedBy(userId,Status.valueOf(status),PageRequest.of(pageNumber,limit));
       return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
     }
 
@@ -146,7 +152,7 @@ public class notesService {
      Optional<Note> note = notesRepo.findById(id);
      if(note.isPresent()){
         Note n = note.get();
-        n.setRemarks(null);
+        n.setRemarks("Approved");
         n.setStatus(Status.Approved);
         notesRepo.save(n);
         return;
@@ -155,5 +161,20 @@ public class notesService {
     }
     private NotesWithoutImagesDTO convertToNotesWithoutImagesDTO(Note n){
        return modelMapper.map(n,NotesWithoutImagesDTO.class);
+    }
+
+
+    public List<NotesWithoutImagesDTO> getNotes(String userId,Integer pageNumber,Integer limit){
+        List<Note> allNotes =  notesRepo.findBycreatedBy(userId,PageRequest.of(pageNumber,limit));
+        return allNotes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
+    }
+
+    public Map<String,Long> getCountsOfNotes(String userId){
+        List<Object[]> counts = notesRepo.getCountsOfNotes(userId);
+        Map<String,Long> countsMap = counts.stream().collect(Collectors.toMap(a -> (String)a[0], a -> (Long) a[1]));
+        return countsMap;
+    }
+    public void deleteNote(String noteID) {
+         notesRepo.deleteById(noteID);
     }
 }

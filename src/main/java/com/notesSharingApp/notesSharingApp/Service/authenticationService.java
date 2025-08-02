@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.notesSharingApp.notesSharingApp.repository.authenticationRepo;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
@@ -212,17 +213,17 @@ public class authenticationService {
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
     }
-    public void updateUser(String userId,userDTOWithoutNotes user) throws RuntimeException{
+    public void updateUser(String userId,TempUser user) throws RuntimeException{
 
         if(!isValidEmail(user.getUniversityEmail())){
              throw new RuntimeException("Email is not valid");
         }
       Optional<user> dbUser = authenticationRepo.findById(userId);
       if(dbUser.isPresent()){
-          TempUser tempUser = ConvertToUserUpdateRequest(user);
-          tempUser.setRemarks("Pending Review");
-          tempUser.setAccountStatus(Status.Pending);
-          userUpdateRequest.save(tempUser);
+          user.setRemarks("Pending Review");
+          user.setAccountStatus(Status.Pending);
+          user.setRequestAt(LocalDate.now());
+          userUpdateRequest.save(user);
           user u = dbUser.get();
           u.setEnabled(false);
           authenticationRepo.save(u);

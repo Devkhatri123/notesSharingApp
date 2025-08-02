@@ -25,11 +25,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -54,11 +49,13 @@ public class config {
 
                 .cors(Customizer.withDefaults())
 
-               .exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
+               //.exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
                 .authorizeHttpRequests(auth->{ auth
                 .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("v1/auth/signUp").permitAll()
                 .requestMatchers("v1/auth/login").permitAll()
+                .requestMatchers("v1/auth/resendVerificationCode").permitAll()
+                .requestMatchers("v1/auth/verify").permitAll()
                 .requestMatchers("/v1/notes").permitAll()
                  .requestMatchers("/v1/notes/note/{noteID}").permitAll()
                  .requestMatchers("/v1/subject/all").permitAll()
@@ -92,7 +89,7 @@ public class config {
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
         configuration.setAllowCredentials(true);
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

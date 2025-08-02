@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -25,14 +26,14 @@ public class Note implements Serializable {
     private String subjectCode;
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(length = 512)
+    @Column(length = 768)
     private String remarks;
     private String createdAt;
     private String updatedAt;
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private user createdBy;
     @Column(name = "note_thumbnail",columnDefinition = "LONGBLOB")
@@ -41,4 +42,16 @@ public class Note implements Serializable {
     private byte[] notePdfData;
     private String thumbnailFilename;
     private String pdfNoteFilename;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Note note = (Note) o;
+        return Objects.equals(id, note.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

@@ -9,27 +9,28 @@ import com.notesSharingApp.notesSharingApp.model.Note;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.notesService;
-import com.notesSharingApp.notesSharingApp.DTO.RemakRequest;
+import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @RestController
 @RequestMapping("/v1/notes")
 public class notesController {
 
+    private final notesService notesService;
+
     @Autowired
-    private notesService notesService;
+    public notesController(notesService notesService){
+        this.notesService = notesService;
+    }
+
 
     @PostMapping(value = "/uploadNote",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadNotes(
@@ -90,7 +91,7 @@ public class notesController {
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("admin/sendRemarkForNote")
-    public jsonResponse sendRemark(@RequestBody RemakRequest request) {
+    public jsonResponse sendRemark(@RequestBody RemarkRequest request) {
         jsonResponse response = new jsonResponse();
         try {
             notesService.sendRemark(request);
@@ -104,8 +105,11 @@ public class notesController {
     }
 
     @GetMapping("/myNotes")
-    public List<NotesWithoutImagesDTO> getMyNotes(@RequestParam String userId){
-        return notesService.myNotes(userId);
+    public ResponseEntity<?> getMyNotes(@RequestParam String userId,@RequestParam(name = "status") String status, @RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
+        Map<String,Object> response = new HashMap<>();
+        response.put("myNotes",notesService.myNotes(userId,status,pageNumber,limit));
+        response.put("count",notesService.getCountsOfNotes(userId));
+        return ResponseEntity.ok(response);
     }
 
    @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -123,4 +127,10 @@ public class notesController {
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
    }
+       @DeleteMapping("/{noteID}")
+       public ResponseEntity<?> deleteNote(@PathVariable String noteID){
+         notesService.deleteNote(noteID);
+         return ResponseEntity.ok("Note deleted successfully!");
+       }
+
 }

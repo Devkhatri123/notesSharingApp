@@ -1,11 +1,14 @@
 package com.notesSharingApp.notesSharingApp.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -27,5 +30,7 @@ public class TempUser {
     private String remarks;
     @Enumerated(EnumType.STRING)
     private Status accountStatus;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate requestAt;
 
 }
