@@ -1,7 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
-import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
@@ -22,12 +21,12 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/v1/notes")
-public class notesController {
+public class NotesController {
 
     private final notesService notesService;
 
     @Autowired
-    public notesController(notesService notesService){
+    public NotesController(notesService notesService){
         this.notesService = notesService;
     }
 

@@ -22,7 +22,7 @@ public class TempUser {
     @Column(length = 50)
     private String name;
     private String gender;
-    @Column(length = 20,unique = true)
+    @Column(length = 20,unique = true,insertable = false,updatable = false)
     private String universityEmail;
     private int semester;
     private String department;

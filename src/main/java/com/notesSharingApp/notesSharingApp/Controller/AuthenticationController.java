@@ -3,12 +3,11 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
-import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
-import com.notesSharingApp.notesSharingApp.Service.authenticationService;
+import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import com.notesSharingApp.notesSharingApp.model.user;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
@@ -29,13 +28,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/auth")
-public class authenticationController {
+public class AuthenticationController {
     @Value("${spring.mail.username}")
     private String username;
     @Value("${spring.mail.password}")
     private String password;
     @Autowired
-    private authenticationService authenticationService;
+    private AuthenticationService authenticationService;
     @Autowired
     private jwtService jwtService;
 
@@ -164,7 +163,7 @@ public class authenticationController {
        }
        @PreAuthorize("hasRole('ROLE_ADMIN')")
        @GetMapping("admin/ApprovalPendingUserInfo")
-       public List<userDTOWithoutNotes> getApprovalPendingUsersInfo(){
-       return null;
+       public List<TempUser> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
+        return authenticationService.getApprovalPendingUsersInfo(pageNumber,limit);
        }
 }

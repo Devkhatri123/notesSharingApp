@@ -14,6 +14,7 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,15 +27,12 @@ import com.notesSharingApp.notesSharingApp.model.TempUser;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class authenticationService {
+public class AuthenticationService {
     private final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private final String UNIVERSITY_MAIL_REGEX = "^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$";
     private final String[] departments = {"CS","CE"};
@@ -233,5 +231,10 @@ public class authenticationService {
     }
     public TempUser ConvertToUserUpdateRequest(userDTOWithoutNotes user){
        return modelMapper.map(user, TempUser.class);
+    }
+
+
+    public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber,Integer limit) {
+        return userUpdateRequest.findAll(PageRequest.of(pageNumber,limit)).getContent();
     }
 }
