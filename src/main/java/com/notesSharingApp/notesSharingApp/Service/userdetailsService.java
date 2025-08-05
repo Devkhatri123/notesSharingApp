@@ -6,14 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.notesSharingApp.notesSharingApp.repository.authenticationRepo;
+import com.notesSharingApp.notesSharingApp.repository.AuthenticationRepo;
 
 
 
 @Service
 public class userdetailsService implements UserDetailsService {
     @Autowired
-    private authenticationRepo authenticationRepo;
+    private AuthenticationRepo authenticationRepo;
 
     @Override
     public userdetails loadUserByUsername(String username) throws UsernameNotFoundException {

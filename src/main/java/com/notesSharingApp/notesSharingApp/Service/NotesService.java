@@ -5,10 +5,7 @@ import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
-import com.notesSharingApp.notesSharingApp.model.Note;
-import com.notesSharingApp.notesSharingApp.model.Status;
-import com.notesSharingApp.notesSharingApp.model.Subject;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
+import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.notesSharingApp.notesSharingApp.repository.notesRepo;
+import com.notesSharingApp.notesSharingApp.repository.NotesRepo;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -26,27 +23,25 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class notesService {
+public class NotesService {
 
     @Autowired
-    private subjectService subjectService;
+    private SubjectService subjectService;
     @Autowired
-    private notesRepo notesRepo;
+    private NotesRepo notesRepo;
     @Autowired
-    private emailService emailService;
+    private EmailService emailService;
     @Autowired
     private ModelMapper modelMapper;
 
-
-
     public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        userdetails object = null;
+        userdetails authenticatedUser = null;
         if(authentication != null && authentication.isAuthenticated()) {
-             object = (userdetails) authentication.getPrincipal();
-            if(!object.getUser().isEmailVerified()){
+            authenticatedUser = (userdetails) authentication.getPrincipal();
+            if(!authenticatedUser.getUser().isEmailVerified()){
                 throw new RuntimeException("Your email is not verified. You are not allowed to upload the notes");
-            }else if(!object.getUser().isEnabled()){
+            }else if(!authenticatedUser.getUser().isEnabled()){
                 throw new RuntimeException("Your account is disabled.You are not allowed to upload the notes");
             }
 
@@ -55,20 +50,21 @@ public class notesService {
       if(subject == null){
           throw new RuntimeException("Subject not found Against selected code");
       }
-      n.setId(UUID.randomUUID().toString());
+
+      //n.setId(UUID.randomUUID().toString());
       n.setSubject(subject);
-      userdetails authenticatedUser = (userdetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       n.setCreatedBy(authenticatedUser.getUser());
       n.setImgThumbNail(thumbnail.getBytes());
-      n.setThumbnailFilename(thumbnail.getOriginalFilename());
       n.setNotePdfData(notes.getBytes());
-      n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
       n.setCreatedAt(LocalDateTime.now().format(formatter));
+      System.out.println(n.getId());
+      if(n.getId() == null) {
+      n.setId(UUID.randomUUID().toString());
+      }
       notesRepo.save(n);
-      sendForApproval(n);
 
     }
 
@@ -96,26 +92,26 @@ public class notesService {
 
     public List<notesDTO> getSubjectNotes(String subjectID) {
         List<Note> notes = notesRepo.findBySubjectID(subjectID);
-        return notes.stream().map(notesService::getNotesDTO).toList()
+        return notes.stream().map(NotesService::getNotesDTO).toList()
                 .stream().filter(notesDTO -> {
                     return notesDTO.getStatus().equals("Approved");
                 }).toList();
     }
 
     public Note getNote(String noteID) throws RuntimeException {
-       Optional<Note> note = notesRepo.findById(noteID);
-       if(!note.isPresent()){
-           throw new NoSuchElementException("This note doesn't exists");
-       }
-
-       if(!note.get().getStatus().name().equals("Approved") && note.get().getRemarks() != null){
-           throw new RuntimeException("This note is not available right now");
-       }
-       return note.get();
-    }
+        if(notesRepo.existsById(noteID)) {
+            Optional<Note> note = notesRepo.findById(noteID);
+            if (!note.isPresent()) {
+                throw new NoSuchElementException("This note doesn't exists");
+            }else {
+                return note.get();
+            }
+        }
+        return null;
+   }
     public List<notesDTO> getApprovalPendingNotes() {
         List<Note> allNotes = notesRepo.findAll();
-        return allNotes.stream().map(notesService::getNotesDTO).toList()
+        return allNotes.stream().map(NotesService::getNotesDTO).toList()
                 .stream().filter(noteDTO -> noteDTO.getStatus()
                         .equals("Pending")).toList();
      }
@@ -134,13 +130,7 @@ public class notesService {
     private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
         emailService.sendRemarkNotification(fullname,subject,to,message);
     }
-    private void sendForApproval(Note note){
-//        ApproveNote approveNote = new ApproveNote();
-//        approveNote.setNote(note);
-//
-//        approveNoteRepo.save(approveNote);
 
-    }
 
     public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
         if(status.equals("All")) return getNotes(userId,pageNumber, limit);

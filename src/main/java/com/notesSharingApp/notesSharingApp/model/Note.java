@@ -8,13 +8,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Getter
 @Setter
-@EqualsAndHashCode
-@Entity
 @ToString
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Note implements Serializable {
     @Id
     @Column(name = "note_id")
@@ -33,7 +34,7 @@ public class Note implements Serializable {
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private user createdBy;
     @Column(name = "note_thumbnail",columnDefinition = "LONGBLOB")
@@ -43,15 +44,17 @@ public class Note implements Serializable {
     private String thumbnailFilename;
     private String pdfNoteFilename;
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Note note = (Note) o;
-        return Objects.equals(id, note.id);
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (o == null || getClass() != o.getClass()) return false;
+//        Note note = (Note) o;
+//        return Objects.equals(id, note.id);
+//    }
+//
+//    @Override
+//    public int hashCode() {
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
+
+//        return Objects.hashCode(id);
+//    }
 }

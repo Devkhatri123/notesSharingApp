@@ -1,6 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
+import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
@@ -19,7 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.notesSharingApp.notesSharingApp.Service.jwtService;
+import com.notesSharingApp.notesSharingApp.Service.JwtService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +37,7 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
     @Autowired
-    private jwtService jwtService;
+    private JwtService jwtService;
 
     @PostMapping("/signUp")
     public ResponseEntity<?> signUp(@RequestBody user user) {
@@ -152,7 +153,7 @@ public class AuthenticationController {
         Map<String,Object> response = new HashMap<>();
         try {
             authenticationService.updateUser(userId, user);
-            response.put("message","Update request has been sent, update will shown in few days once it is approved my admin");
+            response.put("message","Update request has been sent, update will shown in few days once it is approved by admin");
             response.put("status",HttpStatus.OK.value());
             return ResponseEntity.ok().body(response);
         } catch (RuntimeException e) {
@@ -165,5 +166,37 @@ public class AuthenticationController {
        @GetMapping("admin/ApprovalPendingUserInfo")
        public List<TempUser> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
         return authenticationService.getApprovalPendingUsersInfo(pageNumber,limit);
+       }
+
+       @GetMapping("/UserInfoUpdateRequestStatus/{userID}")
+       public ResponseEntity<?> getUserInfoUpdateRequestStatus(@PathVariable String userID){
+        Map<String,String> statusMap = authenticationService.getUserInfoUpdateRequestStatus(userID);
+        if(statusMap == null) return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
+        return ResponseEntity.ok(authenticationService.getUserInfoUpdateRequestStatus(userID));
+       }
+
+
+       @PreAuthorize("hasRole('ROLE_ADMIN')")
+       @PostMapping("/admin/RejectInfoUpdateRequest/{userId}")
+       public ResponseEntity<String> rejectUpdateInfoRequest(@PathVariable String userId, @RequestBody RemarkRequest remarkRequest){
+           try {
+               authenticationService.rejectUpdateInfoRequest(userId, remarkRequest);
+               return ResponseEntity.ok("Operation completed");
+           } catch (RuntimeException e) {
+               e.printStackTrace();
+           }
+           return null;
+       }
+       @DeleteMapping("/UpdateInfoInfo/{userID}")
+       public ResponseEntity<?> deleteUpdateInfoRequest(@PathVariable String userID){
+         authenticationService.deleteUpdateInfoRequest(userID);
+         return ResponseEntity.ok("Request Deleted successfully");
+       }
+
+       @PreAuthorize("hasRole('ROLE_ADMIN')")
+       @PostMapping("/admin/approveChanges/{userId}")
+       public ResponseEntity<String> approveUserInfoUpdateRequest(@PathVariable String userId){
+          authenticationService.approveChanges(userId);
+          return ResponseEntity.ok("Changes applied to user profile");
        }
 }

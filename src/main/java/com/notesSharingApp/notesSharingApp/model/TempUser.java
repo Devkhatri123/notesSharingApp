@@ -27,6 +27,7 @@ public class TempUser {
     private int semester;
     private String department;
     private String phone;
+    @Column(length = 50)
     private String remarks;
     @Enumerated(EnumType.STRING)
     private Status accountStatus;

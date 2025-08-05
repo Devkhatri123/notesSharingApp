@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.notesSharingApp.notesSharingApp.Service.subjectService;
+import com.notesSharingApp.notesSharingApp.Service.SubjectService;
 
 
 @RestController
@@ -16,7 +16,7 @@ import com.notesSharingApp.notesSharingApp.Service.subjectService;
 public class SubjectController {
 
     @Autowired
-    private subjectService subjectService;
+    private SubjectService subjectService;
     @GetMapping("/all")
     public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize){
         jsonResponse response = new jsonResponse();

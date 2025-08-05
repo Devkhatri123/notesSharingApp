@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.notesSharingApp.notesSharingApp.Service.notesService;
+import com.notesSharingApp.notesSharingApp.Service.NotesService;
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 
 import java.io.IOException;
@@ -23,10 +23,10 @@ import java.util.*;
 @RequestMapping("/v1/notes")
 public class NotesController {
 
-    private final notesService notesService;
+    private final NotesService notesService;
 
     @Autowired
-    public NotesController(notesService notesService){
+    public NotesController(NotesService notesService){
         this.notesService = notesService;
     }
 
@@ -43,7 +43,7 @@ public class NotesController {
             notesService.uploadNote(thumbnail,notes,note);
             response.put("message","Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
             response.put("status",HttpStatus.CREATED.value());
-            return ResponseEntity.created(null).body(response);
+            return ResponseEntity.ok().body(response);
         }catch (IOException e) {
              response.put("message",e.getMessage());
              response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -126,6 +126,12 @@ public class NotesController {
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
    }
+//       @PutMapping("/{noteID}")
+//       public ResponseEntity<?> updateNote(@PathVariable String noteID, @RequestBody TempNote note){
+//        notesService.updateNote(noteID,note);
+//        return null;
+//       }
+
        @DeleteMapping("/{noteID}")
        public ResponseEntity<?> deleteNote(@PathVariable String noteID){
          notesService.deleteNote(noteID);

@@ -1,7 +1,5 @@
 package com.notesSharingApp.notesSharingApp.JWT;
 
-import com.google.gson.Gson;
-import com.notesSharingApp.notesSharingApp.model.user;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
@@ -9,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,14 +15,11 @@ import com.notesSharingApp.notesSharingApp.model.userdetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.notesSharingApp.notesSharingApp.Service.jwtService;
+import com.notesSharingApp.notesSharingApp.Service.JwtService;
 import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
-import java.security.SignatureException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class jwtFilter extends OncePerRequestFilter {
@@ -33,7 +27,7 @@ public class jwtFilter extends OncePerRequestFilter {
 
 
     @Autowired
-    private jwtService jwtService;
+    private JwtService jwtService;
     @Autowired
     private userdetailsService userdetailsService;
 

@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
+import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
@@ -22,7 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.notesSharingApp.notesSharingApp.repository.authenticationRepo;
+import com.notesSharingApp.notesSharingApp.repository.AuthenticationRepo;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 
 import java.time.LocalDate;
@@ -37,9 +38,9 @@ public class AuthenticationService {
     private final String UNIVERSITY_MAIL_REGEX = "^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$";
     private final String[] departments = {"CS","CE"};
     @Autowired
-    private authenticationRepo authenticationRepo;
+    private AuthenticationRepo authenticationRepo;
     @Autowired
-    private emailService emailService;
+    private EmailService emailService;
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
@@ -47,11 +48,13 @@ public class AuthenticationService {
     @Autowired
     private userdetailsService userdetailsService;
     @Autowired
-    private jwtService jwtService;
+    private JwtService jwtService;
     @Autowired
     private UserUpdateRequest userUpdateRequest;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    NotesService notesService;
 
 
     public void register(user user) throws MessagingException,RuntimeException {
@@ -130,6 +133,7 @@ public class AuthenticationService {
         }
         boolean isCorrect = passwordEncoder.matches(loginDto.getPassword(),user.getPassword());
         if(isCorrect) {
+           // user.setMyNotes(notesService.getAllNote(user.getId()));
             String token = jwtService.generateToken(user);
             setJwtInCookies(token,response);
             return user;
@@ -211,11 +215,14 @@ public class AuthenticationService {
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
     }
+    // Sending user's info update request in tempUser table to let the admins
+    // to-check whether the information in update request is appropriate, or not
+    // if update information is valid, then tempUser row data will be copied in the main user table
     public void updateUser(String userId,TempUser user) throws RuntimeException{
-
-        if(!isValidEmail(user.getUniversityEmail())){
+       if(!isValidEmail(user.getUniversityEmail())){
              throw new RuntimeException("Email is not valid");
-        }
+       }
+       // Fetching the user data from primary user table
       Optional<user> dbUser = authenticationRepo.findById(userId);
       if(dbUser.isPresent()){
           user.setRemarks("Pending Review");
@@ -223,10 +230,11 @@ public class AuthenticationService {
           user.setRequestAt(LocalDate.now());
           userUpdateRequest.save(user);
           user u = dbUser.get();
+          // Disabling the user account temporarily
           u.setEnabled(false);
           authenticationRepo.save(u);
       }else {
-          throw new RuntimeException("No user in Db");
+          throw new RuntimeException("No user Found");
       }
     }
     public TempUser ConvertToUserUpdateRequest(userDTOWithoutNotes user){
@@ -235,6 +243,56 @@ public class AuthenticationService {
 
 
     public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber,Integer limit) {
-        return userUpdateRequest.findAll(PageRequest.of(pageNumber,limit)).getContent();
+        return userUpdateRequest.findAllByaccountStatus_(Status.Pending,PageRequest.of(pageNumber,limit));
+    }
+
+    public void rejectUpdateInfoRequest(String userId, RemarkRequest remarkRequest) {
+       Optional<TempUser> u = userUpdateRequest.findById(userId);
+       Optional<user> u2 = authenticationRepo.findById(userId);
+       if(u.isPresent()){
+           TempUser tempUser = u.get();
+           tempUser.setRemarks(remarkRequest.getMessage());
+           tempUser.setAccountStatus(Status.Declined);
+           userUpdateRequest.save(tempUser);
+           if(u2.isPresent()){
+               user RealUser = u2.get();
+               RealUser.setEnabled(true);
+               authenticationRepo.save(RealUser);
+           }
+       }
+    }
+
+    public void approveChanges(String userId) {
+        Optional<TempUser> u = userUpdateRequest.findById(userId);
+        Optional<user> u2 = authenticationRepo.findById(userId);
+        if (u2.isPresent() && u.isPresent()) {
+            TempUser tempUser = u.get();
+            user ActualUser = u2.get();
+
+            ActualUser.setFullname(tempUser.getName());
+            ActualUser.setSemester(tempUser.getSemester());
+            ActualUser.setGender(tempUser.getGender());
+            ActualUser.setDepartment(tempUser.getDepartment());
+            ActualUser.setContact(tempUser.getPhone());
+
+            tempUser.setAccountStatus(Status.Approved);
+            userUpdateRequest.save(tempUser);
+            authenticationRepo.save(ActualUser);
+        }
+    }
+    public Map<String,String> getUserInfoUpdateRequestStatus(String userId){
+       if(userUpdateRequest.existsById(userId)) {
+           TempUser user = userUpdateRequest.findOneByid(userId);
+           Map<String, String> statusMap = new HashMap<>();
+           statusMap.put("remark", user.getRemarks());
+           statusMap.put("status", user.getAccountStatus().toString());
+           return statusMap;
+       } else return null;
+    }
+
+    public void deleteUpdateInfoRequest(String userID) {
+        if(userUpdateRequest.existsById(userID)) {
+            userUpdateRequest.deleteById(userID);
+        }
     }
 }
