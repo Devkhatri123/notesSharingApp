@@ -40,9 +40,9 @@ public class NotesService {
         if(authentication != null && authentication.isAuthenticated()) {
             authenticatedUser = (userdetails) authentication.getPrincipal();
             if(!authenticatedUser.getUser().isEmailVerified()){
-                throw new RuntimeException("Your email is not verified. You are not allowed to upload the notes");
-            }else if(!authenticatedUser.getUser().isEnabled()){
-                throw new RuntimeException("Your account is disabled.You are not allowed to upload the notes");
+                throw new RuntimeException("Your email is not verified.You are not allowed to upload the notes");
+            }else if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
+                throw new RuntimeException(authenticatedUser.getUser().getAccountRemarks());
             }
 
         }
@@ -60,8 +60,7 @@ public class NotesService {
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
       n.setCreatedAt(LocalDateTime.now().format(formatter));
-      System.out.println(n.getId());
-      if(n.getId() == null) {
+      if(n.getId().isEmpty()) {
       n.setId(UUID.randomUUID().toString());
       }
       notesRepo.save(n);
@@ -161,10 +160,9 @@ public class NotesService {
 
     public Map<String,Long> getCountsOfNotes(String userId){
         List<Object[]> counts = notesRepo.getCountsOfNotes(userId);
-        Map<String,Long> countsMap = counts.stream().collect(Collectors.toMap(a -> (String)a[0], a -> (Long) a[1]));
-        return countsMap;
+        return counts.stream().collect(Collectors.toMap(a -> (String)a[0], a -> (Long) a[1]));
     }
     public void deleteNote(String noteID) {
-         notesRepo.deleteById(noteID);
+         notesRepo.deleteByid(noteID);
     }
 }

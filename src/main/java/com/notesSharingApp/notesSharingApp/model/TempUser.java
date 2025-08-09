@@ -27,10 +27,10 @@ public class TempUser {
     private int semester;
     private String department;
     private String phone;
-    @Column(length = 50)
+    @Column(length = 512)
     private String remarks;
     @Enumerated(EnumType.STRING)
-    private Status accountStatus;
+    private AccountStatus accountStatus;
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate requestAt;
 

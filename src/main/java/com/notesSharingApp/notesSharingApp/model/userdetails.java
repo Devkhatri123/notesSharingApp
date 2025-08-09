@@ -15,9 +15,9 @@ import java.util.List;
 @ToString
 public class userdetails implements UserDetails {
 
-    private user user;
+    private User user;
 
-    public userdetails(user user){
+    public userdetails(User user){
         this.user = user;
     }
 

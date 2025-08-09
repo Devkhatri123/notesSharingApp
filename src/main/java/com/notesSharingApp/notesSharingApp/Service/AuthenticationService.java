@@ -7,10 +7,8 @@ import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
-import com.notesSharingApp.notesSharingApp.model.Status;
-import com.notesSharingApp.notesSharingApp.model.user;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
-import com.notesSharingApp.notesSharingApp.repository.UserUpdateRequest;
+import com.notesSharingApp.notesSharingApp.model.*;
+import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
@@ -24,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.notesSharingApp.notesSharingApp.repository.AuthenticationRepo;
-import com.notesSharingApp.notesSharingApp.model.TempUser;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,18 +47,18 @@ public class AuthenticationService {
     @Autowired
     private JwtService jwtService;
     @Autowired
-    private UserUpdateRequest userUpdateRequest;
+    private TempUserRepo tempUserRepo;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
     NotesService notesService;
 
 
-    public void register(user user) throws MessagingException,RuntimeException {
+    public void register(User user) throws MessagingException,RuntimeException {
         if(!isValidEmail(user.getUniversityEmail())){
             throw new RuntimeException("University email is not valid");
         }else if (authenticationRepo.findByuniversityEmail(user.getUniversityEmail()) != null){
-            throw new RuntimeException("Email is already taken");
+            throw new RuntimeException("Email is already in use");
         }else if(!Arrays.stream(departments).anyMatch(user.getDepartment()::equals)){
             throw new RuntimeException(user.getDepartment() +" department is not available right now");
         }else if(authenticationRepo.findBycontact(user.getContact()) != null){
@@ -72,15 +69,15 @@ public class AuthenticationService {
         // set UUId,encode password,role("student") and disable account until verification is done
         user.setId(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(true);
+        user.setAccountStatus(AccountStatus.Active);
         user.setEmailVerified(false);
         user.setRole("STUDENT");
+        user.setAccountRemarks("Your email is not verified");
 
         // Verification Code Logic
         user.setVerificationCode(generateVerificationCode());
         user.setExpirationAt(LocalDateTime.now().plusMinutes(15));
-        user.setEmailVerified(false);
-        user savedUser = authenticationRepo.save(user);
+        User savedUser = authenticationRepo.save(user);
         if(authenticationRepo.findById(savedUser.getId()).isPresent()) {
             sendVerificationCode(user.getUniversityEmail(), user.getVerificationCode());
         }else{
@@ -100,15 +97,15 @@ public class AuthenticationService {
         if(verificationDTO.getEmail() == null){
             throw new RuntimeException("Email not provided");
         }
-        user user = authenticationRepo.findByuniversityEmail(verificationDTO.getEmail());
+        User user = authenticationRepo.findByuniversityEmail(verificationDTO.getEmail());
         if(user != null){
             if(!user.isEmailVerified()){
                 if(user.getExpirationAt().isBefore(LocalDateTime.now())){
                   throw new VerificationCodeExpired("Verification Code expired");
                 }
                 if(user.getVerificationCode() == verificationDTO.getVerificationCode()){
-                    user.setEnabled(true);
                     user.setEmailVerified(true);
+                    user.setAccountRemarks("");
                     user.setVerificationCode(0);
                     user.setExpirationAt(null);
                     authenticationRepo.save(user);
@@ -123,11 +120,11 @@ public class AuthenticationService {
         }
     }
 
-    public user login(loginDTO loginDto,HttpServletResponse response) {
+    public User login(loginDTO loginDto, HttpServletResponse response) {
         if(!isValidEmail(loginDto.getEmail())){
             throw new RuntimeException("Entered email is not valid");
         }
-        user user =  authenticationRepo.findByuniversityEmail(loginDto.getEmail());
+        User user =  authenticationRepo.findByuniversityEmail(loginDto.getEmail());
         if(user == null){
           throw new RuntimeException("Account doesn't exist");
         }
@@ -146,7 +143,7 @@ public class AuthenticationService {
         if(!isValidEmail(email)){
             throw new RuntimeException("Email is not valid");
         }
-        user user = authenticationRepo.findByuniversityEmail(email);
+        User user = authenticationRepo.findByuniversityEmail(email);
         if(user == null){
             throw new AccountNotFound("user not found");
         }
@@ -186,7 +183,7 @@ public class AuthenticationService {
                 .build();
                 response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
     }
-    public userDTOWithoutNotes convertUserModelToDTO(user user){
+    public userDTOWithoutNotes convertUserModelToDTO(User user){
         final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(user.getId());
@@ -195,6 +192,8 @@ public class AuthenticationService {
         userDTOWithoutNotes.setSemester(user.getSemester());
         userDTOWithoutNotes.setDepartment(user.getDepartment());
         userDTOWithoutNotes.setEnabled(user.isEnabled());
+        userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
+        userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
         userDTOWithoutNotes.setRole(user.getRole());
         userDTOWithoutNotes.setPhone(user.getContact());
         userDTOWithoutNotes.setGender(user.getGender());
@@ -223,15 +222,17 @@ public class AuthenticationService {
              throw new RuntimeException("Email is not valid");
        }
        // Fetching the user data from primary user table
-      Optional<user> dbUser = authenticationRepo.findById(userId);
+      Optional<User> dbUser = authenticationRepo.findById(userId);
       if(dbUser.isPresent()){
-          user.setRemarks("Pending Review");
-          user.setAccountStatus(Status.Pending);
+          User u = dbUser.get();
+          user.setRemarks("Update Request Pending Review");
+          user.setAccountStatus(AccountStatus.Pending);
           user.setRequestAt(LocalDate.now());
-          userUpdateRequest.save(user);
-          user u = dbUser.get();
+          tempUserRepo.save(user);
+
           // Disabling the user account temporarily
-          u.setEnabled(false);
+          u.setAccountRemarks("Update Info Request Pending Review. Your account is disabled temporarily, it will be enabled once a decision is made by admin");
+          u.setAccountStatus(AccountStatus.Disabled);
           authenticationRepo.save(u);
       }else {
           throw new RuntimeException("No user Found");
@@ -243,46 +244,50 @@ public class AuthenticationService {
 
 
     public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber,Integer limit) {
-        return userUpdateRequest.findAllByaccountStatus_(Status.Pending,PageRequest.of(pageNumber,limit));
+        return tempUserRepo.findAllByaccountStatus_(AccountStatus.Pending,PageRequest.of(pageNumber,limit));
     }
 
     public void rejectUpdateInfoRequest(String userId, RemarkRequest remarkRequest) {
-       Optional<TempUser> u = userUpdateRequest.findById(userId);
-       Optional<user> u2 = authenticationRepo.findById(userId);
+       Optional<TempUser> u = tempUserRepo.findById(userId);
+       Optional<User> u2 = authenticationRepo.findById(userId);
        if(u.isPresent()){
            TempUser tempUser = u.get();
            tempUser.setRemarks(remarkRequest.getMessage());
-           tempUser.setAccountStatus(Status.Declined);
-           userUpdateRequest.save(tempUser);
+           tempUser.setAccountStatus(AccountStatus.Declined);
+           tempUserRepo.save(tempUser);
            if(u2.isPresent()){
-               user RealUser = u2.get();
-               RealUser.setEnabled(true);
+               User RealUser = u2.get();
+               RealUser.setAccountStatus(AccountStatus.Active);
+               RealUser.setAccountRemarks("");
                authenticationRepo.save(RealUser);
            }
        }
     }
 
     public void approveChanges(String userId) {
-        Optional<TempUser> u = userUpdateRequest.findById(userId);
-        Optional<user> u2 = authenticationRepo.findById(userId);
+        Optional<TempUser> u = tempUserRepo.findById(userId);
+        Optional<User> u2 = authenticationRepo.findById(userId);
         if (u2.isPresent() && u.isPresent()) {
             TempUser tempUser = u.get();
-            user ActualUser = u2.get();
+            User ActualUser = u2.get();
 
             ActualUser.setFullname(tempUser.getName());
             ActualUser.setSemester(tempUser.getSemester());
             ActualUser.setGender(tempUser.getGender());
             ActualUser.setDepartment(tempUser.getDepartment());
             ActualUser.setContact(tempUser.getPhone());
+            ActualUser.setAccountStatus(AccountStatus.Active);
+            ActualUser.setAccountRemarks("");
 
-            tempUser.setAccountStatus(Status.Approved);
-            userUpdateRequest.save(tempUser);
+            tempUser.setAccountStatus(AccountStatus.Approved);
+            tempUser.setRemarks("Your Update Request was Approved,changes has been applied");
+            tempUserRepo.save(tempUser);
             authenticationRepo.save(ActualUser);
         }
     }
     public Map<String,String> getUserInfoUpdateRequestStatus(String userId){
-       if(userUpdateRequest.existsById(userId)) {
-           TempUser user = userUpdateRequest.findOneByid(userId);
+       if(tempUserRepo.existsById(userId)) {
+           TempUser user = tempUserRepo.findOneByid(userId);
            Map<String, String> statusMap = new HashMap<>();
            statusMap.put("remark", user.getRemarks());
            statusMap.put("status", user.getAccountStatus().toString());
@@ -291,8 +296,8 @@ public class AuthenticationService {
     }
 
     public void deleteUpdateInfoRequest(String userID) {
-        if(userUpdateRequest.existsById(userID)) {
-            userUpdateRequest.deleteById(userID);
+        if(tempUserRepo.existsById(userID)) {
+            tempUserRepo.deleteById(userID);
         }
     }
 }

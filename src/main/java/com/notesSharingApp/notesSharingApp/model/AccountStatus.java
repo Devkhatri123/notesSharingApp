@@ -1,6 +1,6 @@
 package com.notesSharingApp.notesSharingApp.model;
 
-public enum Status {
+public enum AccountStatus {
     Pending,
     Declined,
     Approved,
@@ -8,4 +8,3 @@ public enum Status {
     Blocked,
     Disabled,
 }
-

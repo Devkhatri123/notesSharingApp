@@ -15,16 +15,17 @@ public class SubjectService {
     @Autowired
     private SubjectRepo subjectRepo;
 
-    public List<Subject> getAllSubject(Integer pageNumber,Integer limit){
-         Page<Subject> subjects = subjectRepo.findAll(PageRequest.of(pageNumber,limit));
+    public List<Subject> getAllSubject(Integer pageNumber,Integer limit,String query){
+        Page<Subject> subjects = null;
+        if(query == null) {
+            subjects = subjectRepo.findAll(PageRequest.of(pageNumber, limit));
+        }else{
+          subjects = subjectRepo.searchSubject(query,PageRequest.of(pageNumber,limit));
+        }
          return subjects.getContent();
     }
     public Subject getSubjectByCode(String Code){
         return subjectRepo.findByCode(Code);
     }
 
-//    public List<Subject> getAllSubjectOfUserDepartmentAndSemester() {
-//        userdetails authenticatedUser = (userdetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        return getAllSubject();
-// }
 }

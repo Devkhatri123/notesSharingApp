@@ -18,14 +18,15 @@ public class SubjectController {
     @Autowired
     private SubjectService subjectService;
     @GetMapping("/all")
-    public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize){
+    public ResponseEntity<?> getAllSubject(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize,@RequestParam(name = "query") String query){
         jsonResponse response = new jsonResponse();
         try {
-            return new ResponseEntity<>(subjectService.getAllSubject(pageNumber, pageSize),HttpStatus.OK);
+            return new ResponseEntity<>(subjectService.getAllSubject(pageNumber, pageSize,query),HttpStatus.OK);
         } catch (RuntimeException e) {
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
     }
+
 }

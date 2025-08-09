@@ -1,6 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.model.user;
+import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,7 +17,7 @@ public class userdetailsService implements UserDetailsService {
 
     @Override
     public userdetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        user user = authenticationRepo.findByuniversityEmail(username);
+        User user = authenticationRepo.findByuniversityEmail(username);
         if(user == null){
             throw new UsernameNotFoundException("user not found");
         }

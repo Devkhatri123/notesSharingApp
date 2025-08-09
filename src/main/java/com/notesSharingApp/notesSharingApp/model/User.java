@@ -2,7 +2,6 @@ package com.notesSharingApp.notesSharingApp.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -15,15 +14,17 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @EqualsAndHashCode
-@ToString
+//@ToString
 @Component
 @Entity
-public class user implements Serializable {
+public class User implements Serializable {
     @Id
+    @EqualsAndHashCode.Include
     private String id;
     @Column(length = 50)
     private String fullname;
@@ -36,6 +37,10 @@ public class user implements Serializable {
     private String password;
     @Column(name = "isEnabled")
     private boolean isEnabled;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus accountStatus;
+    @Column(length = 512)
+    private String accountRemarks;
     @Column(name = "isEmailVerified")
     private boolean isEmailVerified;
     private String role;
@@ -46,4 +51,7 @@ public class user implements Serializable {
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Note> myNotes;
+    @OneToMany(mappedBy = "reportedUser")
+    @JsonIgnore
+    private List<UserReport> reports;
 }

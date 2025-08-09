@@ -10,7 +10,7 @@ import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
 import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
-import com.notesSharingApp.notesSharingApp.model.user;
+import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,9 +39,10 @@ public class AuthenticationController {
     @Autowired
     private JwtService jwtService;
 
+    Map<String,Object> response = new HashMap<>();
+
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@RequestBody user user) {
-       Map<String,Object> response = new HashMap<>();
+    public ResponseEntity<?> signUp(@RequestBody User user) {
         try {
             authenticationService.register(user);
             response.put("message","Registration successful. Verification code sent to your university web mail");
@@ -53,6 +54,7 @@ public class AuthenticationController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(response);
         } catch (RuntimeException e) {
+
             response.put("message",e.getMessage());
             response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             e.printStackTrace();
@@ -63,7 +65,6 @@ public class AuthenticationController {
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestBody verificationDTO verificationDTO) {
-        Map<String,Object> response = new HashMap<>();
         try {
             authenticationService.verify(verificationDTO);
             response.put("message","Verification successful!");
@@ -85,9 +86,9 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody loginDTO loginDto, HttpServletResponse res) {
-         Map<String,Object> response = new HashMap<>();
          try {
-             user user = authenticationService.login(loginDto,res);
+             User user = authenticationService.login(loginDto,res);
+             System.out.println(user);
              response.put("user",authenticationService.convertUserModelToDTO(user));
              response.put("Status",200);
              return ResponseEntity.ok(response);
@@ -101,24 +102,23 @@ public class AuthenticationController {
      }
     @PostMapping("/resendVerificationCode")
     public ResponseEntity<?> resendVerificationCode(@RequestParam String email){
-        jsonResponse response = new jsonResponse();
         try {
             authenticationService.resendVerificationCode(email);
-            response.setMessage("Verification code sent to your email");
-            response.setHttpStatusCode(HttpStatus.OK);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            response.put("message","Verification code sent to your email");
+            response.put("status",HttpStatus.OK.value());
+            return ResponseEntity.ok(response);
         } catch (MessagingException e) {
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            response.put("message",e.getMessage());
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }catch (AccountNotFound e){
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            response.put("message",e.getMessage());
+            response.put("status",HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
         } catch (RuntimeException e) {
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.OK);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            response.put("message",e.getMessage());
+            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     // Getting loggedInUser state for every request on frontend. This will help to find Out whether the
@@ -126,7 +126,7 @@ public class AuthenticationController {
     // from Security Context then we will log out user from frontend.
      @GetMapping("/loggedInUser")
      public ResponseEntity<?> getLoggedInUser(){
-        Map<String,Object> response = new HashMap<>();
+
         userdetails user = authenticationService.getLoggedInUser();
         if(user != null){
             response.put("user",authenticationService.convertUserModelToDTO(user.getUser()));
@@ -140,63 +140,11 @@ public class AuthenticationController {
          return ResponseEntity.ok(response);
   }
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse res){
+    public ResponseEntity<?> logout(HttpServletResponse res) {
         authenticationService.logout(res);
-        Map<String,Object> response = new HashMap<>();
-        response.put("user",null);
-        response.put("isLoggedIn",false);
-        response.put("Status",200);
+        response.put("user", null);
+        response.put("isLoggedIn", false);
+        response.put("Status", 200);
         return ResponseEntity.ok(response);
-   }
-       @PutMapping("/{userId}")
-       public ResponseEntity<?> updateUser(@RequestBody TempUser user, @PathVariable  String userId){
-        Map<String,Object> response = new HashMap<>();
-        try {
-            authenticationService.updateUser(userId, user);
-            response.put("message","Update request has been sent, update will shown in few days once it is approved by admin");
-            response.put("status",HttpStatus.OK.value());
-            return ResponseEntity.ok().body(response);
-        } catch (RuntimeException e) {
-            response.put("message",e.getMessage());
-            response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-            return ResponseEntity.internalServerError().body(response);
-        }
-       }
-       @PreAuthorize("hasRole('ROLE_ADMIN')")
-       @GetMapping("admin/ApprovalPendingUserInfo")
-       public List<TempUser> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
-        return authenticationService.getApprovalPendingUsersInfo(pageNumber,limit);
-       }
-
-       @GetMapping("/UserInfoUpdateRequestStatus/{userID}")
-       public ResponseEntity<?> getUserInfoUpdateRequestStatus(@PathVariable String userID){
-        Map<String,String> statusMap = authenticationService.getUserInfoUpdateRequestStatus(userID);
-        if(statusMap == null) return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
-        return ResponseEntity.ok(authenticationService.getUserInfoUpdateRequestStatus(userID));
-       }
-
-
-       @PreAuthorize("hasRole('ROLE_ADMIN')")
-       @PostMapping("/admin/RejectInfoUpdateRequest/{userId}")
-       public ResponseEntity<String> rejectUpdateInfoRequest(@PathVariable String userId, @RequestBody RemarkRequest remarkRequest){
-           try {
-               authenticationService.rejectUpdateInfoRequest(userId, remarkRequest);
-               return ResponseEntity.ok("Operation completed");
-           } catch (RuntimeException e) {
-               e.printStackTrace();
-           }
-           return null;
-       }
-       @DeleteMapping("/UpdateInfoInfo/{userID}")
-       public ResponseEntity<?> deleteUpdateInfoRequest(@PathVariable String userID){
-         authenticationService.deleteUpdateInfoRequest(userID);
-         return ResponseEntity.ok("Request Deleted successfully");
-       }
-
-       @PreAuthorize("hasRole('ROLE_ADMIN')")
-       @PostMapping("/admin/approveChanges/{userId}")
-       public ResponseEntity<String> approveUserInfoUpdateRequest(@PathVariable String userId){
-          authenticationService.approveChanges(userId);
-          return ResponseEntity.ok("Changes applied to user profile");
-       }
+    }
 }

@@ -2,8 +2,10 @@ package com.notesSharingApp.notesSharingApp.repository;
 
 import com.notesSharingApp.notesSharingApp.model.Note;
 import com.notesSharingApp.notesSharingApp.model.Status;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,4 +26,9 @@ public interface NotesRepo extends JpaRepository<Note, String> {
     List<Object[]> getCountsOfNotes(@Param("userId") String userId);
     @Query("SELECT n FROM Note n JOIN FETCH n.createdBy")
     List<Note> findNotes(String Id);
+    @Query(value = "delete from Note n where n.id=:id")
+    @Modifying
+    @Transactional
+    void deleteByid(@Param("id") String id);
+
 }

@@ -2,14 +2,11 @@ package com.notesSharingApp.notesSharingApp.model;
 
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
 
 @Getter
 @Setter
@@ -36,7 +33,7 @@ public class Note implements Serializable {
     private Subject subject;
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private user createdBy;
+    private User createdBy;
     @Column(name = "note_thumbnail",columnDefinition = "LONGBLOB")
     private byte[] imgThumbNail;
     @Column(columnDefinition = "LONGBLOB")

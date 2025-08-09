@@ -1,6 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.model.user;
+import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,7 +22,7 @@ public class JwtService {
 
     private SecretKey secretKey;
 
-    public String generateToken(user user){
+    public String generateToken(User user){
         Map<String,String> claim = new HashMap<>();
         claim.put("email",user.getUniversityEmail());
         claim.put("role",user.getRole());

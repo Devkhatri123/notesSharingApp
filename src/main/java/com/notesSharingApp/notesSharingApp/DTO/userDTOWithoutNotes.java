@@ -19,6 +19,8 @@ public class userDTOWithoutNotes {
     private int semester;
     private String department;
     private String phone;
+    private String accountStatus;
+    private String accountRemarks;
     private String gender;
     private String role;
     private boolean isEnabled;
