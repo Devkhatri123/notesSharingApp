@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -48,10 +49,10 @@ public class User implements Serializable {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDateTime expirationAt;
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> myNotes;
-    @OneToMany(mappedBy = "reportedUser")
+    @OneToMany(mappedBy = "reportedUser",fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<UserReport> reports;
+    private List<UserReport> reports = new ArrayList<>();
 }

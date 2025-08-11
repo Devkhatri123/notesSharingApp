@@ -70,10 +70,10 @@ public class ProfileService {
             tempUser.setAccountStatus(AccountStatus.Declined);
             tempUserRepo.save(tempUser);
             if(u2.isPresent()){
-                User RealUser = u2.get();
-                RealUser.setAccountStatus(AccountStatus.Active);
-                RealUser.setAccountRemarks("");
-                profileRepo.save(RealUser);
+                User primaryUser = u2.get();
+                primaryUser.setAccountStatus(AccountStatus.Active);
+                primaryUser.setAccountRemarks("");
+                profileRepo.save(primaryUser);
             }
         }
     }

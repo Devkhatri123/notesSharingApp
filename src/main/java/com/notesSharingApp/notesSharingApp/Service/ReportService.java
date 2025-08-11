@@ -1,0 +1,89 @@
+package com.notesSharingApp.notesSharingApp.Service;
+
+
+import com.notesSharingApp.notesSharingApp.DTO.ReportedUserDTO;
+import com.notesSharingApp.notesSharingApp.DTO.UserReportRequestDTO;
+import com.notesSharingApp.notesSharingApp.DTO.ReportResponseDTO;
+import com.notesSharingApp.notesSharingApp.model.User;
+import com.notesSharingApp.notesSharingApp.model.UserReport;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
+import com.notesSharingApp.notesSharingApp.repository.AuthenticationRepo;
+import com.notesSharingApp.notesSharingApp.repository.ProfileRepo;
+import com.notesSharingApp.notesSharingApp.repository.UserReportRepo;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+public class ReportService {
+    @Autowired
+    private UserReportRepo reportRepo;
+    @Autowired
+    private AuthenticationRepo authenticationRepo;
+    @Autowired
+    private ModelMapper modelMapper;
+    @Autowired
+    private ProfileRepo profileRepo;
+
+    public void reportUser(UserReportRequestDTO userReportRequestDTO) {
+        Optional<User> reportedUser = profileRepo.findByid(userReportRequestDTO.getReportedUser());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        userdetails authenticatedUser = null;
+        authenticatedUser = (userdetails) authentication.getPrincipal();
+        User reportedBy = authenticatedUser.getUser();
+
+        if(reportedUser.isPresent()) {
+
+         UserReport userReport = new UserReport();
+
+         userReport.setReportedUser(reportedUser.get());
+         userReport.setReportedBy(reportedBy);
+         userReport.setReportID(UUID.randomUUID().toString());
+         userReport.setReason(userReportRequestDTO.getReason());
+         userReport.setAdditionalDetails(userReportRequestDTO.getAdditionalDetails());
+
+
+         if(!reportedUser.get().getReports().isEmpty())
+         reportedUser.get().getReports().add(userReport);
+         else {
+             List<UserReport> reports = new ArrayList<>();
+             reports.add(userReport);
+             reportedUser.get().setReports(reports);
+         }
+            reportRepo.save(userReport);
+            authenticationRepo.save(reportedBy);
+
+        }else {
+            throw new RuntimeException("No user found");
+        }
+   }
+    public List<ReportedUserDTO> getAllReports(Integer pageNumber, Integer limit) {
+       List<User> reportedProfile = profileRepo.getAllReportedProfile(PageRequest.of(pageNumber,limit));
+        return reportedProfile.stream().map(user -> {
+              ReportedUserDTO reportedUserDTO = modelMapper.map(user,ReportedUserDTO.class);
+              reportedUserDTO.setReportCount((Long) profileRepo.getReportCountOfProfile(reportedUserDTO.getId()).get(0)[0]);
+              return reportedUserDTO;
+       }).toList();
+    }
+
+    public List<ReportResponseDTO> getUserReports(String userId) {
+       List<UserReport> list = reportRepo.getAllReports(userId);
+       return list.stream().map(report -> {
+
+           ReportResponseDTO reportResponseDTO = new ReportResponseDTO();
+           reportResponseDTO.setReportID(report.getReportID());
+           reportResponseDTO.setReason(report.getReason());
+           reportResponseDTO.setAdditionalDetails(report.getAdditionalDetails());
+           reportResponseDTO.setReportedByUserId(report.getReportedBy().getId());
+           reportResponseDTO.setReportedByUserName(report.getReportedBy().getFullname());
+           reportResponseDTO.setReportedByUserEmail(report.getReportedBy().getUniversityEmail());
+
+           return reportResponseDTO;
+       }).toList();
+    }
+}

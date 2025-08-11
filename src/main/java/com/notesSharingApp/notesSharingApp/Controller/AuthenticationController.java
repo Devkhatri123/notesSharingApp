@@ -131,7 +131,6 @@ public class AuthenticationController {
         if(user != null){
             response.put("user",authenticationService.convertUserModelToDTO(user.getUser()));
             response.put("isLoggedIn",true);
-            response.put("Status",200);
             return ResponseEntity.ok(response);
         }
          response.put("user",null);

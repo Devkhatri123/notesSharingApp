@@ -10,9 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface AuthenticationRepo extends JpaRepository<User, String> {
-    @Query("select u from User u join fetch u.reports where u.universityEmail=:universityEmail")
+   // @Query("select u from User u left join fetch u.reports where u.universityEmail=:universityEmail")
     public User findByuniversityEmail(@Param("universityEmail") String universityEmail);
     public User findBycontact(String phone);
-    @Query("select u from User u join fetch u.reports where u.id=:id")
+    //@Query("select u from User u left join fetch u.reports where u.id=:id")
     Optional<User> findByid(@Param("id")String id);
 }

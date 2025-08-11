@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserReportDTO {
+public class UserReportRequestDTO {
     private String reportID;
     private String reportedBy;
     private String reportedUser;

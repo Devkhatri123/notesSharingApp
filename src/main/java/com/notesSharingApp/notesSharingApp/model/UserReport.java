@@ -13,6 +13,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class UserReport {
     @Id
     private String reportID;
