@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 
@@ -71,8 +72,8 @@ public class ReportService {
        }).toList();
     }
 
-    public List<ReportResponseDTO> getUserReports(String userId) {
-       List<UserReport> list = reportRepo.getAllReports(userId);
+    public List<ReportResponseDTO> getUserReports(String userId,Integer pageNumber, Integer limit) {
+       List<UserReport> list = reportRepo.getAllReports(userId,PageRequest.of(pageNumber,limit));
        return list.stream().map(report -> {
 
            ReportResponseDTO reportResponseDTO = new ReportResponseDTO();

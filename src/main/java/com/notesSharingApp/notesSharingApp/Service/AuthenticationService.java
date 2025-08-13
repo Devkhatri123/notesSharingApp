@@ -188,15 +188,14 @@ public class AuthenticationService {
         final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(user.getId());
-        userDTOWithoutNotes.setName(user.getFullname());
-        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
+        userDTOWithoutNotes.setFullname(user.getFullname());
         userDTOWithoutNotes.setSemester(user.getSemester());
         userDTOWithoutNotes.setDepartment(user.getDepartment());
         userDTOWithoutNotes.setEnabled(user.isEnabled());
         userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
         userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
         userDTOWithoutNotes.setRole(user.getRole());
-        userDTOWithoutNotes.setPhone(user.getContact());
+        userDTOWithoutNotes.setContact(user.getContact());
         userDTOWithoutNotes.setGender(user.getGender());
         userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
         userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());

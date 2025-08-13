@@ -20,13 +20,13 @@ public class TempUser {
     @Id
     private String id;
     @Column(length = 50)
-    private String name;
+    private String fullname;
     private String gender;
-    @Column(length = 20,unique = true,insertable = false,updatable = false)
+    @Column(length = 20,unique = true,updatable = false)
     private String universityEmail;
     private int semester;
     private String department;
-    private String phone;
+    private String contact;
     @Column(length = 512)
     private String remarks;
     @Enumerated(EnumType.STRING)

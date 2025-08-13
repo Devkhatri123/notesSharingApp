@@ -36,7 +36,7 @@ public class ReportController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin/user/{userId}/reports")
-    public List<ReportResponseDTO> getUserReports(@PathVariable String userId){
-         return reportService.getUserReports(userId);
+    public List<ReportResponseDTO> getUserReports(@PathVariable String userId,@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
+         return reportService.getUserReports(userId,pageNumber,limit);
     }
 }

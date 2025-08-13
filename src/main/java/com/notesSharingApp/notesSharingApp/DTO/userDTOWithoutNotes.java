@@ -14,11 +14,11 @@ import java.util.List;
 @EqualsAndHashCode
 public class userDTOWithoutNotes {
     private String id;
-    private String name;
+    private String fullname;
     private String universityEmail;
     private int semester;
     private String department;
-    private String phone;
+    private String contact;
     private String accountStatus;
     private String accountRemarks;
     private String gender;

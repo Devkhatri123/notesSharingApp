@@ -52,7 +52,7 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> myNotes;
-    @OneToMany(mappedBy = "reportedUser",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reportedUser",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<UserReport> reports = new ArrayList<>();
 }

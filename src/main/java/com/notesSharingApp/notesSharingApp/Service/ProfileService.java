@@ -85,16 +85,18 @@ public class ProfileService {
             TempUser tempUser = u.get();
             User ActualUser = u2.get();
 
-            ActualUser.setFullname(tempUser.getName());
-            ActualUser.setSemester(tempUser.getSemester());
-            ActualUser.setGender(tempUser.getGender());
-            ActualUser.setDepartment(tempUser.getDepartment());
-            ActualUser.setContact(tempUser.getPhone());
+            ActualUser = modelMapper.map(tempUser,User.class);
+
+//            ActualUser.setFullname(tempUser.getFullname());
+//            ActualUser.setSemester(tempUser.getSemester());
+//            ActualUser.setGender(tempUser.getGender());
+//            ActualUser.setDepartment(tempUser.getDepartment());
+//            ActualUser.setContact(tempUser.getContact());
             ActualUser.setAccountStatus(AccountStatus.Active);
             ActualUser.setAccountRemarks("");
 
             tempUser.setAccountStatus(AccountStatus.Approved);
-            tempUser.setRemarks("Your Update Request was Approved,changes has been applied");
+            tempUser.setRemarks("Your Update Info Request has been Approved, changes have been applied");
             tempUserRepo.save(tempUser);
             profileRepo.save(ActualUser);
         }

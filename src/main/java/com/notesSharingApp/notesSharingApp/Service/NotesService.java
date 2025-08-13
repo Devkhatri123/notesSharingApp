@@ -72,7 +72,7 @@ public class NotesService {
         userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
-        userDTOWithoutNotes.setName(n.getCreatedBy().getFullname());
+        userDTOWithoutNotes.setFullname(n.getCreatedBy().getFullname());
         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
 
         notesDto.setId(n.getId());
