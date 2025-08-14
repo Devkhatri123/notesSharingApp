@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.Objects;
 
@@ -13,9 +15,11 @@ import java.util.Objects;
 @Getter
 @Setter
 @EqualsAndHashCode
-@ToString
+//@ToString(exclude = {"reportedUser","reportedBy"})
 public class UserReport {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36, updatable = false, nullable = false)
     private String reportID;
     @ManyToOne
     @JoinColumn(name = "reportedBy_UserId")

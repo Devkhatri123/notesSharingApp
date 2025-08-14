@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 
 @Service
 public class AuthenticationService {
-    private final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private final String UNIVERSITY_MAIL_REGEX = "^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$";
     private final String[] departments = {"CS","CE"};
     @Autowired
@@ -41,17 +40,7 @@ public class AuthenticationService {
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private userdetailsService userdetailsService;
-    @Autowired
     private JwtService jwtService;
-    @Autowired
-    private TempUserRepo tempUserRepo;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    NotesService notesService;
 
 
     public void register(User user) throws MessagingException,RuntimeException {

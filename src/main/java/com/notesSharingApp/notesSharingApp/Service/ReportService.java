@@ -4,6 +4,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 import com.notesSharingApp.notesSharingApp.DTO.ReportedUserDTO;
 import com.notesSharingApp.notesSharingApp.DTO.UserReportRequestDTO;
 import com.notesSharingApp.notesSharingApp.DTO.ReportResponseDTO;
+import com.notesSharingApp.notesSharingApp.model.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.UserReport;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
@@ -25,7 +26,7 @@ public class ReportService {
     @Autowired
     private UserReportRepo reportRepo;
     @Autowired
-    private AuthenticationRepo authenticationRepo;
+    private ProfileService profileService;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -33,31 +34,22 @@ public class ReportService {
 
     public void reportUser(UserReportRequestDTO userReportRequestDTO) {
         Optional<User> reportedUser = profileRepo.findByid(userReportRequestDTO.getReportedUser());
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         userdetails authenticatedUser = null;
         authenticatedUser = (userdetails) authentication.getPrincipal();
         User reportedBy = authenticatedUser.getUser();
-
+        User u = null;
         if(reportedUser.isPresent()) {
-
+         u = reportedUser.get();
          UserReport userReport = new UserReport();
 
-         userReport.setReportedUser(reportedUser.get());
+         userReport.setReportedUser(u);
          userReport.setReportedBy(reportedBy);
-         userReport.setReportID(UUID.randomUUID().toString());
          userReport.setReason(userReportRequestDTO.getReason());
          userReport.setAdditionalDetails(userReportRequestDTO.getAdditionalDetails());
 
-
-         if(!reportedUser.get().getReports().isEmpty())
-         reportedUser.get().getReports().add(userReport);
-         else {
-             List<UserReport> reports = new ArrayList<>();
-             reports.add(userReport);
-             reportedUser.get().setReports(reports);
-         }
-            reportRepo.save(userReport);
-            authenticationRepo.save(reportedBy);
+         reportRepo.save(userReport);
 
         }else {
             throw new RuntimeException("No user found");
@@ -86,5 +78,9 @@ public class ReportService {
 
            return reportResponseDTO;
        }).toList();
+    }
+
+    public void deleteUserReports(String userId) {
+        reportRepo.deleteById(userId);
     }
 }

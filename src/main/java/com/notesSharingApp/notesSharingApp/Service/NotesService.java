@@ -89,12 +89,14 @@ public class NotesService {
     }
 
 
-    public List<notesDTO> getSubjectNotes(String subjectID) {
-        List<Note> notes = notesRepo.findBySubjectID(subjectID);
-        return notes.stream().map(NotesService::getNotesDTO).toList()
-                .stream().filter(notesDTO -> {
-                    return notesDTO.getStatus().equals("Approved");
-                }).toList();
+    public List<notesDTO> getSubjectNotes(String subjectID,Integer pageNumber,Integer limit,String query) {
+        List<Note> notes = null;
+        if(query.isEmpty()) {
+            notes = notesRepo.findBySubjectCode(subjectID, PageRequest.of(pageNumber, limit));
+        }else{
+            notes = notesRepo.findBySubjectCodeAndQuery(subjectID, PageRequest.of(pageNumber, limit),query);
+        }
+        return notes.stream().map(NotesService::getNotesDTO).toList();
     }
 
     public Note getNote(String noteID) throws RuntimeException {
@@ -108,8 +110,8 @@ public class NotesService {
         }
         return null;
    }
-    public List<notesDTO> getApprovalPendingNotes() {
-        List<Note> allNotes = notesRepo.findAll();
+    public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
+        List<Note> allNotes = notesRepo.findAll(PageRequest.of(pageNumber,limit)).getContent();
         return allNotes.stream().map(NotesService::getNotesDTO).toList()
                 .stream().filter(noteDTO -> noteDTO.getStatus()
                         .equals("Pending")).toList();

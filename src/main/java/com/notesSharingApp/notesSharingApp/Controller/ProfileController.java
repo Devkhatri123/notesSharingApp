@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1/profile")
 public class ProfileController {
-
+    Map<String,Object> response = new HashMap<>();
     @Autowired
     private ProfileService profileService;
 
@@ -71,5 +71,16 @@ public class ProfileController {
     public ResponseEntity<String> approveUserInfoUpdateRequest(@PathVariable String userId){
         profileService.approveChanges(userId);
         return ResponseEntity.ok("Changes applied to user profile");
+    }
+    @PostMapping("/admin/block/user/{userId}")
+    public ResponseEntity<?> blockUser(@PathVariable String userId){
+        try {
+            profileService.blockUser(userId);
+            response.put("message","user blocked successfully");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.put("message","user blocked successfully");
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }

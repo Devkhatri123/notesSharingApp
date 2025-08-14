@@ -55,10 +55,10 @@ public class NotesController {
         }
     }
     @GetMapping
-    public ResponseEntity<?> getSubjectNotes(@RequestParam String subjectID){
+    public ResponseEntity<?> getSubjectNotes(@RequestParam String subjectID,@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit,@RequestParam(name = "query") String query){
         jsonResponse response = new jsonResponse();
         try {
-        return new ResponseEntity<>( notesService.getSubjectNotes(subjectID), HttpStatus.OK);
+        return new ResponseEntity<>( notesService.getSubjectNotes(subjectID,pageNumber,limit,query), HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             response.setMessage("Internal Server Error");
@@ -85,8 +85,8 @@ public class NotesController {
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("admin/ApprovalPendingNotes")
-    public List<notesDTO> getApprovalPendingNotes(){
-        return notesService.getApprovalPendingNotes();
+    public List<notesDTO> getApprovalPendingNotes(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
+        return notesService.getApprovalPendingNotes(pageNumber,limit);
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("admin/sendRemarkForNote")

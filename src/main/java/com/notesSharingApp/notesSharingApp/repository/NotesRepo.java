@@ -9,14 +9,17 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import com.notesSharingApp.notesSharingApp.model.Status;
 
 import java.util.List;
 
 @Repository
 public interface NotesRepo extends JpaRepository<Note, String> {
     //public List<Note> findByisApproved(boolean isApproved);
-    @Query("select n from Note n where n.subject.code=:code")
-    public List<Note> findBySubjectID(@Param("code") String code);
+    @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\"")
+    public List<Note> findBySubjectCode(@Param("code") String code,Pageable pageable);
+    @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\" and lower(n.title) like lower(concat('%', :query ,'%'))")
+    public List<Note> findBySubjectCodeAndQuery(@Param("code") String code,Pageable pageable,@Param("query") String query);
     @Query("select n from Note n where n.createdBy.id=:userId")
     public List<Note> findBycreatedBy(String userId,Pageable pageable);
     List<Note> findNoteBystatus(Status status, Pageable pageable);

@@ -25,7 +25,6 @@ import java.util.Set;
 @Entity
 public class User implements Serializable {
     @Id
-    @EqualsAndHashCode.Include
     private String id;
     @Column(length = 50)
     private String fullname;
@@ -52,7 +51,7 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> myNotes;
-    @OneToMany(mappedBy = "reportedUser",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "reportedUser",cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<UserReport> reports = new ArrayList<>();
+    private List<UserReport> reports;
 }

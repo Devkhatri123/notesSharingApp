@@ -85,13 +85,11 @@ public class ProfileService {
             TempUser tempUser = u.get();
             User ActualUser = u2.get();
 
-            ActualUser = modelMapper.map(tempUser,User.class);
-
-//            ActualUser.setFullname(tempUser.getFullname());
-//            ActualUser.setSemester(tempUser.getSemester());
-//            ActualUser.setGender(tempUser.getGender());
-//            ActualUser.setDepartment(tempUser.getDepartment());
-//            ActualUser.setContact(tempUser.getContact());
+            ActualUser.setFullname(tempUser.getFullname());
+            ActualUser.setSemester(tempUser.getSemester());
+            ActualUser.setGender(tempUser.getGender());
+            ActualUser.setDepartment(tempUser.getDepartment());
+            ActualUser.setContact(tempUser.getContact());
             ActualUser.setAccountStatus(AccountStatus.Active);
             ActualUser.setAccountRemarks("");
 
@@ -114,6 +112,15 @@ public class ProfileService {
     public void deleteUpdateInfoRequest(String userID) {
         if(tempUserRepo.existsById(userID)) {
             tempUserRepo.deleteById(userID);
+        }
+    }
+    public void blockUser(String userId) {
+        Optional<User> optionalUser = profileRepo.findById(userId);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            user.setAccountStatus(AccountStatus.Blocked);
+            user.setAccountRemarks("Your account is blocked");
+            profileRepo.save(user);
         }
     }
 }

@@ -14,19 +14,19 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/v1/report")
+@RequestMapping("/v1")
 public class ReportController {
     Map<String,Object> response = new HashMap<>();
     @Autowired
     private ReportService reportService;
 
-    @PostMapping("/user")
+    @PostMapping("/report/user")
     public ResponseEntity<?> report(@RequestBody UserReportRequestDTO userReportRequestDTO){
        reportService.reportUser(userReportRequestDTO);
        return ResponseEntity.ok("Reported successfully");
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/admin/profile/all")
+    @GetMapping("/report/admin/profile/all")
     public ResponseEntity<?> getAllReports(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
         List<ReportedUserDTO> reports = reportService.getAllReports(pageNumber,limit);
         response.put("reports",reports);
@@ -38,5 +38,16 @@ public class ReportController {
     @GetMapping("/admin/user/{userId}/reports")
     public List<ReportResponseDTO> getUserReports(@PathVariable String userId,@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
          return reportService.getUserReports(userId,pageNumber,limit);
+    }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping("/admin/user/{userId}/reports")
+    public ResponseEntity<String> deleteUserReports(@PathVariable String userId){
+        try {
+            reportService.deleteUserReports(userId);
+            return ResponseEntity.ok("Report deleted successfully");
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Internal server error");
+        }
     }
 }
