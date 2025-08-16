@@ -58,7 +58,7 @@ public class ProfileService {
 
 
     public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber, Integer limit) {
-        return tempUserRepo.findAllByaccountStatus_(AccountStatus.Pending, PageRequest.of(pageNumber,limit));
+        return tempUserRepo.getAllPendingProfiles(PageRequest.of(pageNumber,limit));
     }
 
     public void rejectUpdateInfoRequest(String userId, RemarkRequest remarkRequest) {
@@ -122,5 +122,23 @@ public class ProfileService {
             user.setAccountRemarks("Your account is blocked");
             profileRepo.save(user);
         }
+    }
+
+    public List<userDTOWithoutNotes> getProfiles(String query, Integer pageNumber, Integer limit) {
+        if(!query.isEmpty()) {
+            List<User> profiles = profileRepo.searchByFullnameAndUniversityEmail(query, PageRequest.of(pageNumber, limit));
+            return profiles.stream().map(util::convertUserModelToDTO).toList();
+        }
+        return null;
+    }
+
+    public void unBlockUser(String userId) {
+        profileRepo.UnBlockUser(userId);
+    }
+    public User getuser(String userId){
+        return profileRepo.findById(userId).get();
+    }
+    public void saveUser(User user){
+        profileRepo.save(user);
     }
 }

@@ -1,6 +1,7 @@
 package com.notesSharingApp.notesSharingApp.DTO;
 
 
+import com.notesSharingApp.notesSharingApp.model.Role;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +23,7 @@ public class userDTOWithoutNotes {
     private String accountStatus;
     private String accountRemarks;
     private String gender;
-    private String role;
+    private List<Role> roles;
     private boolean isEnabled;
     private boolean isEmailVerified;
 

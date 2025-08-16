@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.Service.JwtService;
 
 import java.util.HashMap;
@@ -89,7 +90,7 @@ public class AuthenticationController {
          try {
              User user = authenticationService.login(loginDto,res);
              System.out.println(user);
-             response.put("user",authenticationService.convertUserModelToDTO(user));
+             response.put("user",util.convertUserModelToDTO(user));
              response.put("Status",200);
              return ResponseEntity.ok(response);
         }catch (RuntimeException e) {
@@ -129,7 +130,7 @@ public class AuthenticationController {
 
         userdetails user = authenticationService.getLoggedInUser();
         if(user != null){
-            response.put("user",authenticationService.convertUserModelToDTO(user.getUser()));
+            response.put("user",util.convertUserModelToDTO(user.getUser()));
             response.put("isLoggedIn",true);
             return ResponseEntity.ok(response);
         }

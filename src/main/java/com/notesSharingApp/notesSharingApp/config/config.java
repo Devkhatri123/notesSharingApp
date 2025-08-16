@@ -2,6 +2,7 @@ package com.notesSharingApp.notesSharingApp.config;
 
 import com.notesSharingApp.notesSharingApp.JWT.AuthEntryPoint;
 import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
+import com.notesSharingApp.notesSharingApp.model.Role;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,7 @@ public class config {
 
                //.exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
                 .authorizeHttpRequests(auth->{ auth
-                .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole(Role.ADMIN.name())
                 .requestMatchers("v1/auth/signUp").permitAll()
                 .requestMatchers("v1/auth/login").permitAll()
                 .requestMatchers("v1/auth/resendVerificationCode").permitAll()
@@ -59,7 +60,8 @@ public class config {
                 .requestMatchers("/v1/notes").permitAll()
                  .requestMatchers("/v1/notes/note/{noteID}").permitAll()
                  .requestMatchers("/v1/subject/all").permitAll()
-                .anyRequest().authenticated();
+                 .requestMatchers("v1/manager/**").hasRole(Role.MANAGER.name())
+                 .anyRequest().authenticated();
         })
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

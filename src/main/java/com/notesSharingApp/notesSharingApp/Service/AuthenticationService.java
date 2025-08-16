@@ -7,6 +7,7 @@ import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
@@ -31,7 +32,6 @@ import java.util.regex.Pattern;
 
 @Service
 public class AuthenticationService {
-    private final String UNIVERSITY_MAIL_REGEX = "^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$";
     private final String[] departments = {"CS","CE"};
     @Autowired
     private AuthenticationRepo authenticationRepo;
@@ -44,7 +44,7 @@ public class AuthenticationService {
 
 
     public void register(User user) throws MessagingException,RuntimeException {
-        if(!isValidEmail(user.getUniversityEmail())){
+        if(!util.isValidEmail(user.getUniversityEmail())){
             throw new RuntimeException("University email is not valid");
         }else if (authenticationRepo.findByuniversityEmail(user.getUniversityEmail()) != null){
             throw new RuntimeException("Email is already in use");
@@ -60,7 +60,8 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setAccountStatus(AccountStatus.Active);
         user.setEmailVerified(false);
-        user.setRole("STUDENT");
+        user.setRoles(Set.of(Role.STUDENT));
+       // user.setRole("STUDENT");
         user.setAccountRemarks("Your email is not verified");
 
         // Verification Code Logic
@@ -111,7 +112,7 @@ public class AuthenticationService {
     }
 
     public User login(loginDTO loginDto, HttpServletResponse response) {
-        if(!isValidEmail(loginDto.getEmail())){
+        if(!util.isValidEmail(loginDto.getEmail())){
             throw new RuntimeException("Entered email is not valid");
         }
         User user =  authenticationRepo.findByuniversityEmail(loginDto.getEmail());
@@ -120,7 +121,6 @@ public class AuthenticationService {
         }
         boolean isCorrect = passwordEncoder.matches(loginDto.getPassword(),user.getPassword());
         if(isCorrect) {
-           // user.setMyNotes(notesService.getAllNote(user.getId()));
             String token = jwtService.generateToken(user);
             setJwtInCookies(token,response);
             return user;
@@ -130,7 +130,7 @@ public class AuthenticationService {
         }
   }
   public void resendVerificationCode(String email) throws MessagingException,AccountNotFound {
-        if(!isValidEmail(email)){
+        if(!util.isValidEmail(email)){
             throw new RuntimeException("Email is not valid");
         }
         User user = authenticationRepo.findByuniversityEmail(email);
@@ -145,15 +145,7 @@ public class AuthenticationService {
         sendVerificationCode(user.getUniversityEmail(),user.getVerificationCode());
         authenticationRepo.save(user);
   }
-
-
-    private boolean isValidEmail(String email) {
-        Pattern pattern = Pattern.compile(UNIVERSITY_MAIL_REGEX);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
-    }
-
-    public userdetails getLoggedInUser() {
+   public userdetails getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null && authentication.isAuthenticated()){
             if((authentication.getPrincipal() instanceof String)){
@@ -172,24 +164,6 @@ public class AuthenticationService {
                 .maxAge(3600)
                 .build();
                 response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
-    }
-    public userDTOWithoutNotes convertUserModelToDTO(User user){
-        final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
-
-        userDTOWithoutNotes.setId(user.getId());
-        userDTOWithoutNotes.setFullname(user.getFullname());
-        userDTOWithoutNotes.setSemester(user.getSemester());
-        userDTOWithoutNotes.setDepartment(user.getDepartment());
-        userDTOWithoutNotes.setEnabled(user.isEnabled());
-        userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
-        userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
-        userDTOWithoutNotes.setRole(user.getRole());
-        userDTOWithoutNotes.setContact(user.getContact());
-        userDTOWithoutNotes.setGender(user.getGender());
-        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
-        userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());
-
-        return userDTOWithoutNotes;
     }
 
     public void logout(HttpServletResponse response) {

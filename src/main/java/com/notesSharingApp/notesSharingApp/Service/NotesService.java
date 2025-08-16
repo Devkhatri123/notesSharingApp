@@ -111,10 +111,8 @@ public class NotesService {
         return null;
    }
     public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
-        List<Note> allNotes = notesRepo.findAll(PageRequest.of(pageNumber,limit)).getContent();
-        return allNotes.stream().map(NotesService::getNotesDTO).toList()
-                .stream().filter(noteDTO -> noteDTO.getStatus()
-                        .equals("Pending")).toList();
+        List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
+        return approvalPendingNotes.stream().map(NotesService::getNotesDTO).toList();
      }
 
     public void sendRemark(RemarkRequest request) throws MessagingException {

@@ -23,9 +23,9 @@ public class JwtService {
     private SecretKey secretKey;
 
     public String generateToken(User user){
-        Map<String,String> claim = new HashMap<>();
+        Map<String,Object> claim = new HashMap<>();
         claim.put("email",user.getUniversityEmail());
-        claim.put("role",user.getRole());
+        claim.put("roles", user.getRoles());
         return Jwts.builder()
                 .subject(user.getUniversityEmail())
                 .issuedAt(new Date())

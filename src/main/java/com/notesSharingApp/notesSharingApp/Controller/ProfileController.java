@@ -1,6 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
+import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,11 @@ public class ProfileController {
         }
     }
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/all")
+    public List<userDTOWithoutNotes> getProfiles(@RequestParam(name = "query") String query,@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
+        return profileService.getProfiles(query,pageNumber,limit);
+    }
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @GetMapping("admin/ApprovalPendingUserInfo")
     public List<TempUser> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
         return profileService.getApprovalPendingUsersInfo(pageNumber,limit);
@@ -72,6 +78,7 @@ public class ProfileController {
         profileService.approveChanges(userId);
         return ResponseEntity.ok("Changes applied to user profile");
     }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/admin/block/user/{userId}")
     public ResponseEntity<?> blockUser(@PathVariable String userId){
         try {
@@ -82,5 +89,12 @@ public class ProfileController {
             response.put("message","user blocked successfully");
             return ResponseEntity.internalServerError().body(response);
         }
+    }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/admin/unblock/user/{userId}")
+    public ResponseEntity<?> unBlockUser(@PathVariable String userId){
+        profileService.unBlockUser(userId);
+        response.put("message","user unblocked successfully");
+        return ResponseEntity.ok(response);
     }
 }

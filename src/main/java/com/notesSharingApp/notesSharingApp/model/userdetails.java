@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -23,9 +24,8 @@ public class userdetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_"+user.getRole()));
-        return authorities;
+       return user.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_"+role
+                .name())).collect(Collectors.toSet());
     }
 
     @Override

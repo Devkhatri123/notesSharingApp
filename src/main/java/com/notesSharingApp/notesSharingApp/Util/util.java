@@ -3,6 +3,7 @@ package com.notesSharingApp.notesSharingApp.Util;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.model.User;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,8 @@ public class util {
         userDTOWithoutNotes.setEnabled(user.isEnabled());
         userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
         userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
-        userDTOWithoutNotes.setRole(user.getRole());
+        userDTOWithoutNotes.setRoles(user.getRoles().stream().toList());
+        //userDTOWithoutNotes.setRole(user.getRole());
         userDTOWithoutNotes.setContact(user.getContact());
         userDTOWithoutNotes.setGender(user.getGender());
         userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
@@ -27,9 +29,16 @@ public class util {
         return userDTOWithoutNotes;
     }
     public static boolean isValidEmail(String email) {
-        String UNIVERSITY_MAIL_REGEX = "^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$";
-        Pattern pattern = Pattern.compile(UNIVERSITY_MAIL_REGEX);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
+        boolean isValid = false;
+        final List<String> UNIVERSITY_MAILS_REGEX = List.of("^csd\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$", "^ce\\d{2}(?:0[1-9]|1[0-2])\\d{2}+@dsu.edu.pk$");
+         for (String UNIVERSITY_MAIL_REGEX : UNIVERSITY_MAILS_REGEX){
+            Pattern  pattern = Pattern.compile(UNIVERSITY_MAIL_REGEX);
+            Matcher matcher = pattern.matcher(email);
+            if(matcher.matches()) {
+                isValid = matcher.matches();
+                break;
+            }
+      }
+        return isValid;
     }
 }

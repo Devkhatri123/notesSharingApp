@@ -15,7 +15,10 @@ import java.util.List;
 
 @Repository
 public interface NotesRepo extends JpaRepository<Note, String> {
-    //public List<Note> findByisApproved(boolean isApproved);
+
+    @Query("select n from Note n where n.status=\"Pending\"")
+    public List<Note> findApprovalPendingNotes(Pageable pageable);
+
     @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\"")
     public List<Note> findBySubjectCode(@Param("code") String code,Pageable pageable);
     @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\" and lower(n.title) like lower(concat('%', :query ,'%'))")
