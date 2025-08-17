@@ -13,5 +13,6 @@ import java.util.List;
 public interface TempUserRepo extends JpaRepository<TempUser,String> {
     @Query(value = "select u from TempUser u where u.accountStatus =\"Pending\"")
     List<TempUser> getAllPendingProfiles(PageRequest pageRequest);
+    long countByaccountStatus(AccountStatus accountStatus);
     TempUser findOneByid(String id);
 }

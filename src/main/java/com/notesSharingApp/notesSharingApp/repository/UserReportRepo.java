@@ -18,4 +18,6 @@ public interface UserReportRepo extends JpaRepository<UserReport,String> {
     @Modifying
     @Transactional
     void deleteById(@Param("userId") String userId);
+    @Query(value = "select count(distinct u.reportedUser) from UserReport u")
+    long countDistinctByreportedUser();
 }

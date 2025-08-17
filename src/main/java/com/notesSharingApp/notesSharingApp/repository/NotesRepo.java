@@ -17,15 +17,14 @@ import java.util.List;
 public interface NotesRepo extends JpaRepository<Note, String> {
 
     @Query("select n from Note n where n.status=\"Pending\"")
-    public List<Note> findApprovalPendingNotes(Pageable pageable);
+     List<Note> findApprovalPendingNotes(Pageable pageable);
 
     @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\"")
-    public List<Note> findBySubjectCode(@Param("code") String code,Pageable pageable);
+     List<Note> findBySubjectCode(@Param("code") String code,Pageable pageable);
     @Query("select n from Note n where n.subject.code=:code and n.status=\"Approved\" and lower(n.title) like lower(concat('%', :query ,'%'))")
-    public List<Note> findBySubjectCodeAndQuery(@Param("code") String code,Pageable pageable,@Param("query") String query);
+     List<Note> findBySubjectCodeAndQuery(@Param("code") String code,Pageable pageable,@Param("query") String query);
     @Query("select n from Note n where n.createdBy.id=:userId")
-    public List<Note> findBycreatedBy(String userId,Pageable pageable);
-    List<Note> findNoteBystatus(Status status, Pageable pageable);
+     List<Note> findBycreatedBy(String userId,Pageable pageable);
     @Query("select n from Note n where n.createdBy.id=:userId and n.status=:status")
     List<Note> findNotesBycreatedBy(String userId,Status status,Pageable pageable);
     @Query(value = "select status, count(status) as notes from Note where user_id = ?1 group by status",nativeQuery = true)
@@ -36,5 +35,7 @@ public interface NotesRepo extends JpaRepository<Note, String> {
     @Modifying
     @Transactional
     void deleteByid(@Param("id") String id);
+
+    long countBystatus(Status status);
 
 }

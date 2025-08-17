@@ -141,4 +141,7 @@ public class ProfileService {
     public void saveUser(User user){
         profileRepo.save(user);
     }
+    public long getPendingUpdatesProfiles(){
+     return tempUserRepo.countByaccountStatus(AccountStatus.Pending);
+    }
 }

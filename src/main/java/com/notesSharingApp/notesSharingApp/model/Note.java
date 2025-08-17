@@ -17,6 +17,7 @@ public class Note implements Serializable {
     @Id
     @Column(name = "note_id")
     private String id;
+    @Column(length = 60)
     private String title;
     @Column(length = 300)
     private String description;
@@ -24,7 +25,7 @@ public class Note implements Serializable {
     private String subjectCode;
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(length = 768)
+    @Column(length = 300)
     private String remarks;
     private String createdAt;
     private String updatedAt;

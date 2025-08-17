@@ -2,6 +2,9 @@ package com.notesSharingApp.notesSharingApp.Util;
 
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.model.User;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -40,5 +43,13 @@ public class util {
             }
       }
         return isValid;
+    }
+    public static userdetails getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        userdetails authenticatedUser = null;
+        if(authentication != null && authentication.isAuthenticated()) {
+            authenticatedUser = (userdetails) authentication.getPrincipal();
+        }
+        return authenticatedUser;
     }
 }

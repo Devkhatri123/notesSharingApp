@@ -4,7 +4,11 @@ import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
+import com.notesSharingApp.notesSharingApp.Exception.AccountIsBlocked;
+import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
+import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
@@ -35,23 +39,32 @@ public class NotesService {
     private ModelMapper modelMapper;
 
     public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        userdetails authenticatedUser = null;
-        if(authentication != null && authentication.isAuthenticated()) {
-            authenticatedUser = (userdetails) authentication.getPrincipal();
+        userdetails authenticatedUser = util.getAuthenticatedUser();
+        if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
                 throw new RuntimeException("Your email is not verified.You are not allowed to upload the notes");
-            }else if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
-                throw new RuntimeException(authenticatedUser.getUser().getAccountRemarks());
+            }
+            if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
+                throw new AccountIsDisabled(authenticatedUser.getUser().getAccountRemarks());
+            }
+            if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Blocked){
+                throw new AccountIsBlocked(authenticatedUser.getUser().getAccountRemarks());
             }
 
+        }else{
+            throw new RuntimeException("User is not authenticated");
         }
       Subject subject = subjectService.getSubjectByCode(n.getSubjectCode());
       if(subject == null){
           throw new RuntimeException("Subject not found Against selected code");
       }
 
-      //n.setId(UUID.randomUUID().toString());
+      if(n.getTitle().length() > 60){
+          throw new CharacterLimitExceeded("Note title character limit is 100");
+      }
+      if(n.getDescription().length() > 300){
+          throw new CharacterLimitExceeded("Notes description character limit is 300");
+      }
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
       n.setImgThumbNail(thumbnail.getBytes());
@@ -64,8 +77,7 @@ public class NotesService {
       n.setId(UUID.randomUUID().toString());
       }
       notesRepo.save(n);
-
-    }
+   }
 
     public static notesDTO getNotesDTO(Note n) {
         notesDTO notesDto = new notesDTO();
@@ -164,5 +176,8 @@ public class NotesService {
     }
     public void deleteNote(String noteID) {
          notesRepo.deleteByid(noteID);
+    }
+    public long getPendingNoteCount(){
+        return notesRepo.countBystatus(Status.Pending);
     }
 }

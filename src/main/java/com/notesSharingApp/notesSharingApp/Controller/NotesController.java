@@ -3,6 +3,9 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
+import com.notesSharingApp.notesSharingApp.Exception.AccountIsBlocked;
+import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
+import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import jakarta.mail.MessagingException;
@@ -49,10 +52,13 @@ public class NotesController {
              response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
              return ResponseEntity.internalServerError().body(response);
         }catch (RuntimeException e) {
-            response.put("message",e.getMessage());
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
-            return ResponseEntity.internalServerError().body(response);
+             response.put("message",e.getMessage());
+             if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled) {
+                 return ResponseEntity.badRequest().body(response);
+             }
+             return ResponseEntity.internalServerError().body(response);
         }
+
     }
     @GetMapping
     public ResponseEntity<?> getSubjectNotes(@RequestParam String subjectID,@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit,@RequestParam(name = "query") String query){

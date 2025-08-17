@@ -83,4 +83,7 @@ public class ReportService {
     public void deleteUserReports(String userId) {
         reportRepo.deleteById(userId);
     }
+    public long reportedUserCount(){
+        return reportRepo.countDistinctByreportedUser();
+    }
 }
