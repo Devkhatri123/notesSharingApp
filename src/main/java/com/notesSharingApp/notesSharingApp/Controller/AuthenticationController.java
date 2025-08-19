@@ -43,22 +43,19 @@ public class AuthenticationController {
     Map<String,Object> response = new HashMap<>();
 
     @PostMapping("/signUp")
+
     public ResponseEntity<?> signUp(@RequestBody User user) {
         try {
             authenticationService.register(user);
             response.put("message","Registration successful. Verification code sent to your university web mail");
-            response.put("status",HttpStatus.CREATED.value());
             return ResponseEntity.ok().body(response);
         } catch (MessagingException e) {
             response.put("message","Something went wrong");
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(response);
         } catch (RuntimeException e) {
-
-            response.put("message",e.getMessage());
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
-            e.printStackTrace();
+             response.put("message", "something wrong on server. Registration operation halted. Try again");
+             e.printStackTrace();
             return ResponseEntity.internalServerError().body(response);
         }
 
@@ -69,17 +66,8 @@ public class AuthenticationController {
         try {
             authenticationService.verify(verificationDTO);
             response.put("message","Verification successful!");
-            response.put("status",HttpStatus.OK.value());
             return ResponseEntity.ok().body(response);
-        } catch (VerificationCodeExpired e) {
-            response.put("message",e.getMessage());
-            response.put("status",HttpStatus.BAD_REQUEST.value());
-            return ResponseEntity.badRequest().body(response);
         } catch (RuntimeException e) {
-            if(e instanceof AccountVerified){
-                response.put("status",HttpStatus.OK.value());
-            }else response.put("status",HttpStatus.BAD_REQUEST.value());
-
             response.put("message",e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }

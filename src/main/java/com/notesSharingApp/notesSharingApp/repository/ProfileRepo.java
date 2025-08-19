@@ -23,8 +23,11 @@ public interface ProfileRepo extends JpaRepository<User,String> {
     List<Object[]> getReportCountOfProfile(@Param("userId") String userId);
     @Query(value = "select u from User u where lower(u.fullname) like lower(concat('%', :Query ,'%')) or lower(u.universityEmail) like lower(concat('%', :Query ,'%')) ")
     List<User> searchByFullnameAndUniversityEmail(@Param("Query") String Query, Pageable pageable);
-    @Query(value = "update User u set u.accountStatus = \"Active\" where u.id=:userId ")
+    @Query(value = "update User u set u.accountStatus = \"Active\",u.accountRemarks= \"\" where u.id=:userId ")
     @Modifying
     @Transactional
     void UnBlockUser(@Param("userId")String userId);
+
+    boolean existsByUniversityEmail(String universityEmail);
+
 }

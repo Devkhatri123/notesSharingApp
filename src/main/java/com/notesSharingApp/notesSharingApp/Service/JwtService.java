@@ -25,7 +25,6 @@ public class JwtService {
     public String generateToken(User user){
         Map<String,Object> claim = new HashMap<>();
         claim.put("email",user.getUniversityEmail());
-        claim.put("roles", user.getRoles());
         return Jwts.builder()
                 .subject(user.getUniversityEmail())
                 .issuedAt(new Date())

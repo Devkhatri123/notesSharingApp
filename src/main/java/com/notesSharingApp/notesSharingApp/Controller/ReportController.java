@@ -20,12 +20,13 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
+    @PreAuthorize("hasRole('ROLE_STUDENT')")
     @PostMapping("/report/user")
     public ResponseEntity<?> report(@RequestBody UserReportRequestDTO userReportRequestDTO){
        reportService.reportUser(userReportRequestDTO);
        return ResponseEntity.ok("Reported successfully");
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("/report/admin/profile/all")
     public ResponseEntity<?> getAllReports(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
         List<ReportedUserDTO> reports = reportService.getAllReports(pageNumber,limit);
@@ -34,12 +35,12 @@ public class ReportController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("/admin/user/{userId}/reports")
     public List<ReportResponseDTO> getUserReports(@PathVariable String userId,@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
          return reportService.getUserReports(userId,pageNumber,limit);
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/admin/user/{userId}/reports")
     public ResponseEntity<String> deleteUserReports(@PathVariable String userId){
         try {

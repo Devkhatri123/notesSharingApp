@@ -23,4 +23,15 @@ public class ManagerService {
         user.setRoles(roles);
         profileService.saveUser(user);
     }
+
+    public void removeAdminRole(String userId) {
+        User user = profileService.getuser(userId);
+        if(user == null){
+            throw new AccountNotFound("user not found");
+        }
+        Set<Role> roles = user.getRoles();
+        roles.remove(Role.ADMIN);
+        user.setRoles(roles);
+        profileService.saveUser(user);
+    }
 }

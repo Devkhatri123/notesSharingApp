@@ -29,4 +29,17 @@ public class ManagerController {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
          }
     }
+    @PreAuthorize("hasRole('ROLE_MANAGER')")
+    @PostMapping("/removeAdminRole/{userId}")
+    public ResponseEntity<?> removeAdminRole(@PathVariable String userId){
+        try {
+            managerService.removeAdminRole(userId);
+            return ResponseEntity.ok("User's admin role removed successfully");
+        } catch (AccountNotFound e) {
+           return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Internal server error");
+        }
+    }
 }

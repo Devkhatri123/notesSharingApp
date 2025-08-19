@@ -4,18 +4,13 @@ import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.Exception.AccountIsBlocked;
-import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
-import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
-import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.repository.NotesRepo;
@@ -38,7 +33,7 @@ public class NotesService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException {
+    public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
@@ -58,12 +53,17 @@ public class NotesService {
       if(subject == null){
           throw new RuntimeException("Subject not found Against selected code");
       }
-
       if(n.getTitle().length() > 60){
           throw new CharacterLimitExceeded("Note title character limit is 100");
       }
       if(n.getDescription().length() > 300){
           throw new CharacterLimitExceeded("Notes description character limit is 300");
+      }
+      if(thumbnail.getContentType() !=null && !thumbnail.getContentType().equalsIgnoreCase("image/jpeg") && !thumbnail.getContentType().equalsIgnoreCase("image/jpg") && !thumbnail.getContentType().equalsIgnoreCase("image/png")){
+          throw new FileNotSupported("Only jpeg/png/jpg thumbnails are allowed");
+      }
+      if(notes.getContentType() != null && !notes.getContentType().equalsIgnoreCase("application/pdf")){
+          throw new FileNotSupported("Only pdf notes are allowed");
       }
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
@@ -79,7 +79,7 @@ public class NotesService {
       notesRepo.save(n);
    }
 
-    public static notesDTO getNotesDTO(Note n) {
+    public notesDTO getNotesDTO(Note n) {
         notesDTO notesDto = new notesDTO();
         userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
@@ -102,19 +102,19 @@ public class NotesService {
 
 
     public List<notesDTO> getSubjectNotes(String subjectID,Integer pageNumber,Integer limit,String query) {
-        List<Note> notes = null;
+        List<Note> notes;
         if(query.isEmpty()) {
             notes = notesRepo.findBySubjectCode(subjectID, PageRequest.of(pageNumber, limit));
         }else{
             notes = notesRepo.findBySubjectCodeAndQuery(subjectID, PageRequest.of(pageNumber, limit),query);
         }
-        return notes.stream().map(NotesService::getNotesDTO).toList();
+        return notes.stream().map(this::getNotesDTO).toList();
     }
 
     public Note getNote(String noteID) throws RuntimeException {
         if(notesRepo.existsById(noteID)) {
             Optional<Note> note = notesRepo.findById(noteID);
-            if (!note.isPresent()) {
+            if (note.isEmpty()) {
                 throw new NoSuchElementException("This note doesn't exists");
             }else {
                 return note.get();
@@ -124,12 +124,12 @@ public class NotesService {
    }
     public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
-        return approvalPendingNotes.stream().map(NotesService::getNotesDTO).toList();
+        return approvalPendingNotes.stream().map(this::getNotesDTO).toList();
      }
 
     public void sendRemark(RemarkRequest request) throws MessagingException {
      Optional<Note> note = notesRepo.findById(request.getId());
-     if(!note.isPresent()){
+     if(note.isEmpty()){
          throw new NoSuchElementException("note doesn't exists");
      }
      Note foundNote = note.get();
@@ -144,9 +144,10 @@ public class NotesService {
 
 
     public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
-        if(status.equals("All")) return getNotes(userId,pageNumber, limit);
-        List<Note> notes = notesRepo.findNotesBycreatedBy(userId,Status.valueOf(status),PageRequest.of(pageNumber,limit));
-      return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
+        if (status.equals("All")) return getNotes(userId, pageNumber, limit);
+        List<Note> notes = notesRepo.findNotesBycreatedBy(userId, Status.valueOf(status), PageRequest.of(pageNumber, limit));
+        return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
+
     }
 
     public void approveNote(String id) throws NoteNotFound {

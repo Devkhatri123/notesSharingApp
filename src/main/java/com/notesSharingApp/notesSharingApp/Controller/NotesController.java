@@ -3,10 +3,7 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
-import com.notesSharingApp.notesSharingApp.Exception.AccountIsBlocked;
-import com.notesSharingApp.notesSharingApp.Exception.AccountIsDisabled;
-import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
-import com.notesSharingApp.notesSharingApp.Exception.NoteNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.NotesService;
@@ -51,9 +49,10 @@ public class NotesController {
              response.put("message",e.getMessage());
              response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
              return ResponseEntity.internalServerError().body(response);
-        }catch (RuntimeException e) {
+        }
+         catch (RuntimeException e) {
              response.put("message",e.getMessage());
-             if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled) {
+             if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled || e instanceof FileNotSupported) {
                  return ResponseEntity.badRequest().body(response);
              }
              return ResponseEntity.internalServerError().body(response);
@@ -89,12 +88,12 @@ public class NotesController {
             return new ResponseEntity<>(response,response.getHttpStatusCode());
         }
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("admin/ApprovalPendingNotes")
     public List<notesDTO> getApprovalPendingNotes(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
         return notesService.getApprovalPendingNotes(pageNumber,limit);
     }
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("admin/sendRemarkForNote")
     public jsonResponse sendRemark(@RequestBody RemarkRequest request) {
         jsonResponse response = new jsonResponse();
@@ -117,26 +116,21 @@ public class NotesController {
         return ResponseEntity.ok(response);
     }
 
-   @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
    @PostMapping("/{noteID}/approve")
-   public ResponseEntity<?> approveNote(@PathVariable String noteID){
+   public ResponseEntity<?> approveNote(@PathVariable String noteID) {
         jsonResponse response = new jsonResponse();
         try {
             notesService.approveNote(noteID);
             response.setMessage("Note approved!!!");
             response.setHttpStatusCode(HttpStatus.OK);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
-        }catch (NoteNotFound e){
+            return new ResponseEntity<>(response, response.getHttpStatusCode());
+        } catch (NoteNotFound e) {
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            return new ResponseEntity<>(response, response.getHttpStatusCode());
         }
-   }
-//       @PutMapping("/{noteID}")
-//       public ResponseEntity<?> updateNote(@PathVariable String noteID, @RequestBody TempNote note){
-//        notesService.updateNote(noteID,note);
-//        return null;
-//       }
+    }
 
        @DeleteMapping("/{noteID}")
        public ResponseEntity<?> deleteNote(@PathVariable String noteID){

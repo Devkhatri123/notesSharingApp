@@ -53,6 +53,7 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "reportedUser",cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
     @JsonIgnore
     private List<UserReport> reports;
+
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     Set<Role> roles;

@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,5 +52,9 @@ public class util {
             authenticatedUser = (userdetails) authentication.getPrincipal();
         }
         return authenticatedUser;
+    }
+    public static int generateVerificationCode(){
+        Random random = new Random();
+        return random.nextInt(1000,9999);
     }
 }

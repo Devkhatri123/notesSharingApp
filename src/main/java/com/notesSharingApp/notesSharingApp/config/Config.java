@@ -31,7 +31,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class config {
+public class Config {
 
     @Autowired
     userdetailsService userdetailsService;

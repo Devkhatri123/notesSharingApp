@@ -7,4 +7,5 @@ public enum AccountStatus {
     Active,
     Blocked,
     Disabled,
+    Temporarily_Disabled
 }

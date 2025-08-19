@@ -12,6 +12,7 @@ import com.notesSharingApp.notesSharingApp.model.*;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -43,6 +44,7 @@ public class AuthenticationService {
     private JwtService jwtService;
 
 
+    @Transactional
     public void register(User user) throws MessagingException,RuntimeException {
         if(!util.isValidEmail(user.getUniversityEmail())){
             throw new RuntimeException("University email is not valid");
@@ -98,6 +100,7 @@ public class AuthenticationService {
                     user.setEmailVerified(true);
                     user.setAccountRemarks("");
                     user.setVerificationCode(0);
+                    if(user.getAccountStatus() == AccountStatus.Disabled) user.setAccountStatus(AccountStatus.Active);
                     user.setExpirationAt(null);
                     authenticationRepo.save(user);
                 }else{
