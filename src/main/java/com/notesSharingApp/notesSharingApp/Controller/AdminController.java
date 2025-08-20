@@ -5,12 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/admin")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN,MANAGER')")
 public class AdminController {
 
     @Autowired
@@ -19,5 +20,9 @@ public class AdminController {
     @GetMapping("/count")
     public ResponseEntity<?> getCountOfPendingNotes_UserUpdates_ReportedUsersProfiles(){
      return ResponseEntity.ok(adminService.getCounts());
+    }
+    @PostMapping("/addSubject")
+    public ResponseEntity<?> addSubject(){
+        return null;
     }
 }

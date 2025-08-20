@@ -5,9 +5,7 @@ import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
-import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
-import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import com.notesSharingApp.notesSharingApp.model.User;
@@ -42,8 +40,8 @@ public class AuthenticationController {
 
     Map<String,Object> response = new HashMap<>();
 
-    @PostMapping("/signUp")
 
+    @PostMapping("/signUp")
     public ResponseEntity<?> signUp(@RequestBody User user) {
         try {
             authenticationService.register(user);
@@ -65,19 +63,21 @@ public class AuthenticationController {
     public ResponseEntity<?> verifyUser(@RequestBody verificationDTO verificationDTO) {
         try {
             authenticationService.verify(verificationDTO);
-            response.put("message","Verification successful!");
-            return ResponseEntity.ok().body(response);
-        } catch (RuntimeException e) {
-            response.put("message",e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+            return ResponseEntity.ok().body("Verification successful!");
+        } catch (RuntimeException ex) {
+            if (ex instanceof AccountNotFound || ex instanceof VerificationCodeExpired ||
+            ex instanceof VerificationCodeNotMatched || ex instanceof EmailNotValid ||
+            ex instanceof AccountVerified) {
+                return ResponseEntity.badRequest().body(ex.getMessage());
+            }
+            return ResponseEntity.internalServerError().body("Internal Server error");
+    }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody loginDTO loginDto, HttpServletResponse res) {
          try {
              User user = authenticationService.login(loginDto,res);
-             System.out.println(user);
              response.put("user",util.convertUserModelToDTO(user));
              response.put("Status",200);
              return ResponseEntity.ok(response);
@@ -98,15 +98,12 @@ public class AuthenticationController {
             return ResponseEntity.ok(response);
         } catch (MessagingException e) {
             response.put("message",e.getMessage());
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }catch (AccountNotFound e){
             response.put("message",e.getMessage());
-            response.put("status",HttpStatus.NOT_FOUND.value());
             return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
         } catch (RuntimeException e) {
             response.put("message",e.getMessage());
-            response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
             return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

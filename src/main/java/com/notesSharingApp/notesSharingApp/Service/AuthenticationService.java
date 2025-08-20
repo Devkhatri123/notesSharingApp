@@ -4,9 +4,7 @@ import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
-import com.notesSharingApp.notesSharingApp.Exception.AccountVerified;
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
-import com.notesSharingApp.notesSharingApp.Exception.VerificationCodeExpired;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
@@ -87,7 +85,7 @@ public class AuthenticationService {
 
     public void verify(verificationDTO verificationDTO) throws VerificationCodeExpired,RuntimeException {
         if(verificationDTO.getEmail() == null){
-            throw new RuntimeException("Email not provided");
+            throw new EmailNotValid("Email not provided");
         }
         User user = authenticationRepo.findByuniversityEmail(verificationDTO.getEmail());
         if(user != null){
@@ -104,13 +102,13 @@ public class AuthenticationService {
                     user.setExpirationAt(null);
                     authenticationRepo.save(user);
                 }else{
-                    throw new RuntimeException("Verification code doesn't match");
+                    throw new VerificationCodeNotMatched("Verification code doesn't match");
                 }
             }else{
-                throw new AccountVerified("user is already verified");
+                throw new AccountVerified("You are already verified");
             }
         }else{
-            throw new RuntimeException("user doesn't exists");
+            throw new AccountNotFound("user doesn't exists");
         }
     }
 

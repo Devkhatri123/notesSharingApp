@@ -33,8 +33,10 @@ public class Subject implements Serializable {
     @Column(name = "short_description")
     private String shortDescription;
     private String department;
-
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    private Status status;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
     @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> notes;

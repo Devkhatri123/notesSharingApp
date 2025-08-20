@@ -14,6 +14,7 @@ import com.notesSharingApp.notesSharingApp.repository.ProfileRepo;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessageRemovedException;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -33,33 +34,25 @@ public class ProfileService {
     @Autowired
     private ProfileRepo profileRepo;
     @Autowired
-    private ModelMapper modelMapper;
+    private TempUserService tempUserService;
     @Autowired
     private EmailService emailService;
+
 
     // Sending user's info update request in tempUser table to let the admins
     // to-check whether the information in update request is appropriate, or not
     // if update information is valid, then tempUser row data will be copied in the main user table
-    public void updateUser(String userId, TempUser user) throws RuntimeException{
 
-        if(!util.isValidEmail(user.getUniversityEmail())){
-            throw new EmailNotValid("Email is not valid");
-        }
-         userdetails userdetails = util.getAuthenticatedUser();
-        if(!userdetails.getUser().getUniversityEmail().equalsIgnoreCase(user.getUniversityEmail())){
-            if(profileRepo.existsByUniversityEmail(user.getUniversityEmail())){
-                throw new EmailAlreadyInUse("Email is already taken");
-            }
-        }
+     @Transactional
+     public void updateUser(String userId, TempUser user) throws RuntimeException{
 
         // Fetching the user data from primary user table
         Optional<User> dbUser = profileRepo.findById(userId);
         if(dbUser.isPresent()){
             User u = dbUser.get();
-            user.setRemarks("Update Request Pending Review");
-            user.setAccountStatus(AccountStatus.Pending);
-            user.setRequestAt(LocalDate.now());
-            tempUserRepo.save(user);
+
+            // save user info update request in tempUser table
+            tempUserService.save(user);
 
             // Disabling the user account temporarily
             u.setAccountRemarks("Update Info Request Pending Review. Your account is disabled temporarily, it will be enabled once a decision is made by admin");
@@ -70,6 +63,7 @@ public class ProfileService {
         }
     }
 
+    // Get update info approval pending request. Only manager/admin can access this
     public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber, Integer limit) {
         return tempUserRepo.getAllPendingProfiles(PageRequest.of(pageNumber,limit));
     }
@@ -115,6 +109,8 @@ public class ProfileService {
             tempUser.setRemarks("Your Update Info Request has been Approved, changes have been applied");
             tempUserRepo.save(tempUser);
             profileRepo.save(ActualUser);
+
+            System.out.println("Operation completed...");
         }
     }
     public Map<String,String> getUserInfoUpdateRequestStatus(String userId){
@@ -170,5 +166,8 @@ public class ProfileService {
         if(OptionalUser.isPresent())
         return util.convertUserModelToDTO(OptionalUser.get());
         else throw new AccountNotFound("profile not found");
+    }
+    public boolean getUserByUniversityEmail(String email){
+       return profileRepo.existsByUniversityEmail(email);
     }
 }
