@@ -22,22 +22,41 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode
 public class Subject implements Serializable {
-    @Column(name="subject_id")
+    @Column(name="subject_id",length = 36,updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Id
     private String subjectId;
-    @Column(name = "subject_name",length = 100)
+    @Column(name = "subject_name",length = 30)
     private String subjectName;
     private int semester;
     @Column(name="subject_code",length = 20,unique = true)
-    @Id
     private String code;
-    @Column(name = "short_description")
+    @Column(name = "short_description",length = 120)
     private String shortDescription;
     private String department;
     @Enumerated(EnumType.STRING)
     private Status status;
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate createdAt;
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate updatedAt;
+    @ManyToOne
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
+    @ManyToOne
+    @JoinColumn(name = "updated_by_id")
+    private User updatedBy;
     @OneToMany(mappedBy = "subject",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Note> notes;
+
+    @Override
+    public String toString() {
+        return "Subject{" +
+                "subjectName='" + subjectName + '\'' +
+                ", semester=" + semester +
+                ", code='" + code + '\'' +
+                ", shortDescription='" + shortDescription + '\'' +
+                '}';
+    }
 }

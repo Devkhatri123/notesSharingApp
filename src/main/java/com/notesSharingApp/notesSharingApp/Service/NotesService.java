@@ -1,10 +1,8 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
-import com.notesSharingApp.notesSharingApp.DTO.NotesWithoutImagesDTO;
-import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
-import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
+import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
@@ -31,32 +29,29 @@ public class NotesService {
     @Autowired
     private EmailService emailService;
     @Autowired
-    private ModelMapper modelMapper;
+    private ModelMapper modalMapper;
 
-    public void uploadNote(MultipartFile thumbnail,MultipartFile notes,Note n) throws IOException{
+    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note) throws IOException{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
-                throw new RuntimeException("Your email is not verified.You are not allowed to upload the notes");
+                throw new EmailNotVerified("Your email is not verified.You are not allowed to upload the notes");
             }
             if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
                 throw new AccountIsDisabled(authenticatedUser.getUser().getAccountRemarks());
             }
-            if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Blocked){
+            else if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Blocked){
                 throw new AccountIsBlocked(authenticatedUser.getUser().getAccountRemarks());
             }
 
         }else{
-            throw new RuntimeException("User is not authenticated");
+            throw new AccountNotFound("User is not authenticated");
         }
-      Subject subject = subjectService.getSubjectByCode(n.getSubjectCode());
-      if(subject == null){
-          throw new RuntimeException("Subject not found Against selected code");
-      }
-      if(n.getTitle().length() > 60){
+
+      if(note.getTitle().length() > 60){
           throw new CharacterLimitExceeded("Note title character limit is 100");
       }
-      if(n.getDescription().length() > 300){
+      if(note.getDescription().length() > 300){
           throw new CharacterLimitExceeded("Notes description character limit is 300");
       }
       if(thumbnail.getContentType() !=null && !thumbnail.getContentType().equalsIgnoreCase("image/jpeg") && !thumbnail.getContentType().equalsIgnoreCase("image/jpg") && !thumbnail.getContentType().equalsIgnoreCase("image/png")){
@@ -65,6 +60,11 @@ public class NotesService {
       if(notes.getContentType() != null && !notes.getContentType().equalsIgnoreCase("application/pdf")){
           throw new FileNotSupported("Only pdf notes are allowed");
       }
+      Subject subject = subjectService.getSubjectByCode(note.getSubjectCode());
+      if(subject == null){
+          throw new SubjectNotFound("Subject not found Against selected code");
+      }
+      Note n = modalMapper.map(note, Note.class);
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
       n.setImgThumbNail(thumbnail.getBytes());
@@ -73,7 +73,7 @@ public class NotesService {
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
       n.setCreatedAt(LocalDateTime.now().format(formatter));
-      if(n.getId().isEmpty()) {
+      if(n.getId().isBlank()) {
       n.setId(UUID.randomUUID().toString());
       }
       notesRepo.save(n);
@@ -162,7 +162,7 @@ public class NotesService {
      throw new NoteNotFound("Note not found");
     }
     private NotesWithoutImagesDTO convertToNotesWithoutImagesDTO(Note n){
-       return modelMapper.map(n,NotesWithoutImagesDTO.class);
+       return modalMapper.map(n,NotesWithoutImagesDTO.class);
     }
 
 

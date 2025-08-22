@@ -21,8 +21,6 @@ public class Note implements Serializable {
     private String title;
     @Column(length = 300)
     private String description;
-    @Transient
-    private String subjectCode;
     @Enumerated(EnumType.STRING)
     private Status status;
     @Column(length = 300)

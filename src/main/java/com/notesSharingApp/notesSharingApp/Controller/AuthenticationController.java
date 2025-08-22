@@ -84,7 +84,6 @@ public class AuthenticationController {
         }catch (RuntimeException e) {
              e.printStackTrace();
              response.put("message",e.getMessage());
-             response.put("Status",HttpStatus.BAD_REQUEST.value());
              return ResponseEntity.badRequest().body(response);
         }
 

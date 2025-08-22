@@ -1,17 +1,17 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
+import com.notesSharingApp.notesSharingApp.DTO.UploadNoteDTO;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
-import com.notesSharingApp.notesSharingApp.model.Note;
+import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.NotesService;
@@ -36,7 +36,7 @@ public class NotesController {
     public ResponseEntity<?> uploadNotes(
                                @RequestPart(value = "thumbnail") MultipartFile thumbnail,
                                @RequestPart(value = "notes") MultipartFile notes,
-                               @RequestPart(value = "note") Note note
+                               @RequestPart(value = "note") UploadNoteDTO note
 
     ){
         Map<String,Object> response = new HashMap<>();
@@ -47,14 +47,17 @@ public class NotesController {
             return ResponseEntity.ok().body(response);
         }catch (IOException e) {
              response.put("message",e.getMessage());
-             response.put("status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+             e.printStackTrace();
              return ResponseEntity.internalServerError().body(response);
         }
          catch (RuntimeException e) {
              response.put("message",e.getMessage());
-             if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled || e instanceof FileNotSupported) {
+             if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled
+                     || e instanceof FileNotSupported || e instanceof EmailNotVerified
+                     || e instanceof SubjectNotFound || e instanceof AccountNotFound) {
                  return ResponseEntity.badRequest().body(response);
-             }
+             }else response.put("message","Internal Server error. Note couldn't be uploaded, try again");
+             e.printStackTrace();
              return ResponseEntity.internalServerError().body(response);
         }
 

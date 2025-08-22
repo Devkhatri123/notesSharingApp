@@ -52,7 +52,7 @@ public class Config {
 
                //.exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
                 .authorizeHttpRequests(auth->{ auth
-                .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasRole(Role.ADMIN.name())
+                .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasAnyRole(Role.ADMIN.name(),Role.MANAGER.name())
                 .requestMatchers("v1/auth/signUp").permitAll()
                 .requestMatchers("v1/auth/login").permitAll()
                 .requestMatchers("v1/auth/resendVerificationCode").permitAll()
