@@ -51,4 +51,5 @@ public interface NotesRepo extends JpaRepository<Note, String> {
 
      long countBystatus(Status status);
 
+    boolean existsByIdAndStatus(String id, Status status);
 }

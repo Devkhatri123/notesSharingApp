@@ -2,9 +2,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
-import com.notesSharingApp.notesSharingApp.Exception.EmailAlreadyInUse;
-import com.notesSharingApp.notesSharingApp.Exception.EmailNotValid;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
@@ -96,7 +94,6 @@ public class ProfileService {
             ActualUser.setSemester(tempUser.getSemester());
             ActualUser.setGender(tempUser.getGender());
             ActualUser.setDepartment(tempUser.getDepartment());
-            ActualUser.setContact(tempUser.getContact());
             ActualUser.setUniversityEmail(tempUser.getUniversityEmail());
 
             ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been send to you");
@@ -125,8 +122,7 @@ public class ProfileService {
 
     public void deleteUpdateInfoRequest(String userID) {
         if(tempUserRepo.existsById(userID)) {
-
-            tempUserRepo.deleteById(userID);
+           tempUserRepo.deleteById(userID);
         }
     }
     public void blockUser(String userId) {
@@ -148,11 +144,18 @@ public class ProfileService {
     }
 
     public void unBlockUser(String userId) {
-
-        profileRepo.UnBlockUser(userId);
+         User user = profileRepo.findById(userId).orElseThrow(() -> new AccountNotFound("Account not found"));
+         if(!user.isEmailVerified()){
+             user.setAccountRemarks("Your account is disabled until you verify your email address.");
+             user.setAccountStatus(AccountStatus.Disabled);
+         }else {
+             user.setAccountRemarks("");
+             user.setAccountStatus(AccountStatus.Active);
+         }
+        profileRepo.save(user);
     }
     public User getuser(String userId){
-        return profileRepo.findById(userId).get();
+        return profileRepo.findById(userId).orElseThrow(()-> new AccountNotFound("Account not found"));
     }
     public void saveUser(User user){
         profileRepo.save(user);
@@ -169,5 +172,24 @@ public class ProfileService {
     }
     public boolean getUserByUniversityEmail(String email){
        return profileRepo.existsByUniversityEmail(email);
+    }
+
+    public void activateProfile(String userId) {
+         User user = getuser(userId);
+         if(user.getAccountStatus() == AccountStatus.Blocked){
+             throw new AccountIsBlocked("Account is blocked");
+         }
+         if(user.getAccountStatus() == AccountStatus.Disabled){
+             if(!user.isEmailVerified()){
+                 user.setEmailVerified(true);
+                 user.setVerificationCode(0);
+                 user.setExpirationAt(null);
+             }
+             user.setAccountRemarks("");
+             user.setAccountStatus(AccountStatus.Active);
+             profileRepo.save(user);
+             return;
+         }
+        if(user.getAccountStatus() == AccountStatus.Active) throw new AccountVerified("Account is already active");
     }
 }

@@ -15,9 +15,6 @@ public class ManagerService {
 
     public void promoteUserToAdmin(String userID){
         User user = profileService.getuser(userID);
-        if(user == null){
-            throw new AccountNotFound("user not found");
-        }
         Set<Role> roles = user.getRoles();
         roles.add(Role.ADMIN);
         user.setRoles(roles);
@@ -26,9 +23,6 @@ public class ManagerService {
 
     public void removeAdminRole(String userId) {
         User user = profileService.getuser(userId);
-        if(user == null){
-            throw new AccountNotFound("user not found");
-        }
         Set<Role> roles = user.getRoles();
         roles.remove(Role.ADMIN);
         user.setRoles(roles);

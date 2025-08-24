@@ -1,5 +1,7 @@
 package com.notesSharingApp.notesSharingApp.JWT;
 
+import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
@@ -56,32 +58,32 @@ public class jwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-       if(token != null) {
-            try {
-             username = jwtService.extractUsername(token);
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (ExpiredJwtException e) {
-                resolver.resolveException(request, response, null, e);
-                return;
-            } catch (MalformedJwtException e) {
-                resolver.resolveException(request, response, null, e);
-                return;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                userdetails user = userdetailsService.loadUserByUsername(username);
+         if (token != null) {
+                try {
+                    username = jwtService.extractUsername(token);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                } catch (ExpiredJwtException e) {
+                    resolver.resolveException(request, response, null, e);
+                    return;
+                } catch (MalformedJwtException e) {
+                    resolver.resolveException(request, response, null, e);
+                    return;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    userdetails user = userdetailsService.loadUserByUsername(username);
 
-                boolean validateToken = jwtService.isTokenValid(token, user);
-                if (validateToken) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    boolean validateToken = jwtService.isTokenValid(token, user);
+                    if (validateToken) {
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
                 }
             }
-        }
        filterChain.doFilter(request,response);
     }
 }

@@ -25,6 +25,7 @@ import java.util.*;
 public class NotesController {
 
     private final NotesService notesService;
+    final Map<String,String> response = new HashMap<>();
 
     @Autowired
     public NotesController(NotesService notesService){
@@ -79,16 +80,12 @@ public class NotesController {
     public ResponseEntity<?> getNote(@PathVariable String noteID){
         try {
             return new ResponseEntity<>(notesService.getNote(noteID),HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            jsonResponse response = new jsonResponse();
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+        }catch (NoteNotFound e) {
+            return ResponseEntity.notFound().build();
+        }catch (NoSuchElementException e) {
+             return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
-            jsonResponse response = new jsonResponse();
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+            return ResponseEntity.internalServerError().body("Internal server error. Try again");
         }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 @ToString
-public class verificationDTO {
+public class VerificationDTO {
     private String email;
     private int verificationCode;
 }

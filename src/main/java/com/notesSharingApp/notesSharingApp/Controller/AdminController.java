@@ -1,6 +1,8 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.SubjectRequestDTO;
+import com.notesSharingApp.notesSharingApp.DTO.SubjectResponseDTO;
+import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectAlreadyExists;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
@@ -45,15 +47,15 @@ public class AdminController {
     }
     // Updating subject
     @PutMapping("/updateSubject")
-    public ResponseEntity<?> updateSubject(@RequestBody Subject subject){
+    public ResponseEntity<?> updateSubject(@RequestBody SubjectResponseDTO subject){
         try {
             adminService.updateSubject(subject);
             return ResponseEntity.ok("Subject updated successfully");
         } catch (RuntimeException e) {
             if(e instanceof SubjectNotFound) return ResponseEntity.notFound().build();
-            else if(e instanceof CharacterLimitExceeded) return ResponseEntity.badRequest().body(e.getMessage());
+            else if(e instanceof CharacterLimitExceeded || e instanceof NotLoggedIn) return ResponseEntity.badRequest().body(e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error in updating subject");
+            return ResponseEntity.internalServerError().body("Internal Server Error");
         }
     }
     // Deleting subject

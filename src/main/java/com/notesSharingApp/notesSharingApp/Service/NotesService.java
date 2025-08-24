@@ -112,15 +112,11 @@ public class NotesService {
     }
 
     public Note getNote(String noteID) throws RuntimeException {
-        if(notesRepo.existsById(noteID)) {
+        if(notesRepo.existsByIdAndStatus(noteID,Status.Approved)) {
             Optional<Note> note = notesRepo.findById(noteID);
-            if (note.isEmpty()) {
-                throw new NoSuchElementException("This note doesn't exists");
-            }else {
-                return note.get();
-            }
+            return note.get();
         }
-        return null;
+        throw new NoteNotFound("Note not found");
    }
     public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));

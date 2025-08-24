@@ -3,7 +3,12 @@ package com.notesSharingApp.notesSharingApp.Util;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashMap;
@@ -13,6 +18,8 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Getter
+@Setter
 public class util {
     public static userDTOWithoutNotes convertUserModelToDTO(User user){
         final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
@@ -26,8 +33,6 @@ public class util {
         userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
         userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
         userDTOWithoutNotes.setRoles(user.getRoles().stream().toList());
-        //userDTOWithoutNotes.setRole(user.getRole());
-        userDTOWithoutNotes.setContact(user.getContact());
         userDTOWithoutNotes.setGender(user.getGender());
         userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
         userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());
@@ -49,14 +54,16 @@ public class util {
     }
     public static userdetails getAuthenticatedUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        userdetails authenticatedUser = null;
-        if(authentication != null && authentication.isAuthenticated()) {
-            authenticatedUser = (userdetails) authentication.getPrincipal();
+        if(authentication != null && authentication.isAuthenticated()){
+            if(authentication.getPrincipal() instanceof String){
+                return null;
+            }
+            return (userdetails) authentication.getPrincipal();
         }
-        return authenticatedUser;
+        return null;
     }
-    public static int generateVerificationCode(){
+    public static int generateVerificationCode() {
         Random random = new Random();
-        return random.nextInt(1000,9999);
+        return random.nextInt(1000, 9999);
     }
 }

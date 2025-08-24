@@ -1,6 +1,8 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.SubjectRequestDTO;
+import com.notesSharingApp.notesSharingApp.DTO.SubjectResponseDTO;
+import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectAlreadyExists;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
@@ -39,7 +41,7 @@ public class AdminService {
     // creating new subject and saving it in subject table
     public Subject addSubject(SubjectRequestDTO subjectRequestDTO) {
         // Checking does subject Already exists With provided Name or code.
-        if(subjectService.isSubjectExistsByCodeOrTitle(subjectRequestDTO.getSubjectName(), subjectRequestDTO.getCode())){
+        if(subjectService.isSubjectExistsByCodeOrTitle(subjectRequestDTO.getSubjectName().replaceAll("\\s+",""), subjectRequestDTO.getCode().replaceAll("\\s+",""))){
          throw new SubjectAlreadyExists("Subject Already Exists. Try Other name or code");
         }
         userdetails userdetails = util.getAuthenticatedUser();
@@ -59,21 +61,34 @@ public class AdminService {
         subjectService.deleteSubject(id);
     }
 
-    public void updateSubject(Subject subject) {
-       if(subject == null || !subjectService.isExistsById(subject.getSubjectId())) throw new SubjectNotFound("Subject Not found");
-       if(subject.getSubjectName().length() > 30) throw new CharacterLimitExceeded("Subject Name should be of 30 character");
-       if(subject.getShortDescription().length() > 120) throw new CharacterLimitExceeded("Subject Description should be of 120 character");
-       if(subject.getCode().length() > 7) throw new CharacterLimitExceeded("Subject Code should be of 7 characters");
-       if(subject.getSemester() <= 0 || subject.getSemester() > 8) throw new CharacterLimitExceeded("Invalid semester number");
-       // set who updated the existing subject
-        subject.setUpdatedBy(util.getAuthenticatedUser().getUser());
-           // Set new values of existing subject
-           subject.setSubjectName(subject.getSubjectName());
-           subject.setSemester(subject.getSemester());
-           subject.setCode(subject.getCode());
-           subject.setShortDescription(subject.getShortDescription());
-           subject.setUpdatedAt(LocalDate.now());
+    public void updateSubject(SubjectResponseDTO subjectDto) throws CharacterLimitExceeded,SubjectNotFound {
+        // Exception will be thrown if anything goes wrong in validation method
+        validateSubject(subjectDto);
 
-           subjectService.save(subject);
+        if(util.getAuthenticatedUser() == null){
+            throw new NotLoggedIn("You are not logged in");
+        }
+        // Setting the new values in the subject model object from subject dto
+        // by using mapper to reduce boilerplate code
+        Subject subject = modelMapper.map(subjectDto,Subject.class);
+        subject.setCreatedBy(profileService.getuser(subjectDto.getCreatedById()));
+        // set who updated the existing subject by extracting user From authenticated User
+        subject.setUpdatedBy(util.getAuthenticatedUser().getUser());
+        subject.setUpdatedAt(LocalDate.now());
+
+        subjectService.save(subject);
+    }
+    // Validate Subject values
+    private void validateSubject(SubjectResponseDTO subject){
+        // Checking the updating subject is present in Db or not
+        if(subject == null || !subjectService.isExistsById(subject.getSubjectId())) throw new SubjectNotFound("Subject Not found");
+
+        if(subject.getSubjectName().trim().length() > 30 || subject.getSubjectName().replaceAll("\\s+","").length() == 0) throw new CharacterLimitExceeded("Subject Name should be of 30 characters");
+
+        if(subject.getShortDescription().trim().length() > 120 || subject.getShortDescription().replaceAll("\\s+","").length() == 0) throw new CharacterLimitExceeded("Subject Description should be of 120 characters");
+
+        if(subject.getCode().trim().length() > 7 || subject.getCode().replaceAll("\\s+","").length() == 0) throw new CharacterLimitExceeded("Subject Code should be of 7 characters");
+
+        if(subject.getSemester() <= 0 || subject.getSemester() > 8) throw new CharacterLimitExceeded("Invalid semester number");
     }
 }

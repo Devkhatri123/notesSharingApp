@@ -33,7 +33,6 @@ public class User implements Serializable {
     private String universityEmail;
     private int semester;
     private String department;
-    private String contact;
     private String password;
     @Column(name = "isEnabled")
     private boolean isEnabled;

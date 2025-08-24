@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.Exception;
 
+import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,10 @@ public class CustomExceptionHandler {
     }
     @ExceptionHandler(HttpClientErrorException.Forbidden.class)
     public ResponseEntity<?> HttpMediaTypeNotSupportedException(HttpClientErrorException.Forbidden Forbidden){
-        response.put("error",Forbidden.getMessage());
-        return ResponseEntity.internalServerError().body(response);
+        return ResponseEntity.internalServerError().body(Forbidden.getMessage());
     }
+//    @ExceptionHandler(NotLoggedIn.class)
+//    public ResponseEntity<?> NotLoggedInException(NotLoggedIn notLoggedIn){
+//        return ResponseEntity.badRequest().body(notLoggedIn.getMessage());
+//    }
 }

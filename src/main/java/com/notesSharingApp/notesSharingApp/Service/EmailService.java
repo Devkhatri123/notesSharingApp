@@ -56,7 +56,7 @@ public class EmailService {
               "      <p>\n" +
               "        Thank you for submitting your notes for <strong>"+coursename+"</strong>. After reviewing your submission, we have identified some issues that require your attention:\n" +
               "      </p>\n" +
-              "      <ul style=\"padding-left: 20px; margin: 16px 0;\">\n" +
+              "      <ul style=\"margin: 16px 0;\">\n" +
               "       <p>"+body+"</p>" +
               "        <!-- Add more list items as needed -->\n" +
               "      </ul>\n" +

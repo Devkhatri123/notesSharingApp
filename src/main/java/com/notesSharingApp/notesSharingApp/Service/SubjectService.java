@@ -2,7 +2,10 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 
 import com.notesSharingApp.notesSharingApp.DTO.SubjectResponseDTO;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.Subject;
+import com.notesSharingApp.notesSharingApp.model.User;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.SubjectRepo;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +22,25 @@ public class SubjectService {
     private SubjectRepo subjectRepo;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     public List<SubjectResponseDTO> getAllSubject(Integer pageNumber,Integer limit,String query){
-        Page<Subject> subjects = null;
+        List<Subject> subjects = null;
         if(query == null) {
-            subjects = subjectRepo.findAll(PageRequest.of(pageNumber, limit));
+            subjects = subjectRepo.findAll(PageRequest.of(pageNumber, limit)).getContent();
         }else{
-          subjects = subjectRepo.searchSubject(query,PageRequest.of(pageNumber,limit));
+          subjects = subjectRepo.searchSubject(query,PageRequest.of(pageNumber,limit)).getContent();
         }
-        return convertToSubjectResponseDtoList(subjects.getContent());
+        if(util.getAuthenticatedUser() != null){
+            User user = util.getAuthenticatedUser().getUser();
+            subjects = subjects.stream().filter(subject -> {
+            return subject.getSemester() == user.getSemester()
+            &&
+            subject.getDepartment().equalsIgnoreCase(user.getDepartment());
+           }).toList();
+        }
+        return convertToSubjectResponseDtoList(subjects);
     }
     public Subject getSubjectByCode(String Code){
         return subjectRepo.findByCode(Code);

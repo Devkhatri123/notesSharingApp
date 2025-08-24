@@ -1,33 +1,24 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
-import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.DTO.verificationDTO;
+import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
-import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.notesSharingApp.notesSharingApp.repository.AuthenticationRepo;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class AuthenticationService {
@@ -50,8 +41,6 @@ public class AuthenticationService {
             throw new RuntimeException("Email is already in use");
         }else if(!Arrays.stream(departments).anyMatch(user.getDepartment()::equals)){
             throw new RuntimeException(user.getDepartment() +" department is not available right now");
-        }else if(authenticationRepo.findBycontact(user.getContact()) != null){
-            throw new RuntimeException("Phone number is already taken");
         }
 
 
@@ -83,7 +72,7 @@ public class AuthenticationService {
         emailService.sendVerificationCode(to,verificationCode);
     }
 
-    public void verify(verificationDTO verificationDTO) throws VerificationCodeExpired,RuntimeException {
+    public void verify(VerificationDTO verificationDTO) throws VerificationCodeExpired,RuntimeException {
         if(verificationDTO.getEmail() == null){
             throw new EmailNotValid("Email not provided");
         }
@@ -149,10 +138,11 @@ public class AuthenticationService {
    public userdetails getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(authentication != null && authentication.isAuthenticated()){
+
             if((authentication.getPrincipal() instanceof String)){
                 return null;
             }
-            return (userdetails) authentication.getPrincipal();
+          return (userdetails) authentication.getPrincipal();
  }
         return null;
     }

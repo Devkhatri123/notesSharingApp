@@ -19,7 +19,6 @@ public class userDTOWithoutNotes {
     private String universityEmail;
     private int semester;
     private String department;
-    private String contact;
     private String accountStatus;
     private String accountRemarks;
     private String gender;

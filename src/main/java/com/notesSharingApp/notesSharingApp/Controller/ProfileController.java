@@ -2,9 +2,7 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
-import com.notesSharingApp.notesSharingApp.Exception.EmailAlreadyInUse;
-import com.notesSharingApp.notesSharingApp.Exception.EmailNotValid;
+import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import jakarta.mail.MessagingException;
@@ -41,7 +39,7 @@ public class ProfileController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@RequestBody TempUser user, @PathVariable String userId){
+    public ResponseEntity<?> updateProfile(@RequestBody TempUser user, @PathVariable String userId){
         try {
             profileService.updateUser(userId, user);
             return ResponseEntity.ok().body("Update request has been sent, update will shown in few days once it is approved by admin");
@@ -120,8 +118,29 @@ public class ProfileController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("/admin/unblock/user/{userId}")
     public ResponseEntity<?> unBlockUser(@PathVariable String userId){
-        profileService.unBlockUser(userId);
-        response.put("message","user unblocked successfully");
-        return ResponseEntity.ok(response);
+        try {
+            profileService.unBlockUser(userId);
+            return ResponseEntity.ok("user unblocked successfully");
+        }catch (AccountNotFound e){
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.internalServerError().body("Error in unblocking user. Try again");
+        }
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PostMapping("/admin/activate/user/{userId}")
+    public ResponseEntity<?> activateProfile(@PathVariable String userId){
+        try{
+            profileService.activateProfile(userId);
+            return ResponseEntity.ok("Profile reactivated!");
+        } catch (AccountNotFound e) {
+          return ResponseEntity.notFound().build();
+        } catch (AccountIsDisabled e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AccountVerified e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (RuntimeException e) {
+            return ResponseEntity.internalServerError().body("Internal Server error");
+        }
     }
 }
