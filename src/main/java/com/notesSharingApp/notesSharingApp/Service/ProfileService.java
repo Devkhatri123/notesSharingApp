@@ -90,7 +90,7 @@ public class ProfileService {
             TempUser tempUser = u.get();
             User ActualUser = u2.get();
 
-            ActualUser.setFullname(tempUser.getFullname());
+            ActualUser.setUsername(tempUser.getUsername());
             ActualUser.setSemester(tempUser.getSemester());
             ActualUser.setGender(tempUser.getGender());
             ActualUser.setDepartment(tempUser.getDepartment());
@@ -99,6 +99,7 @@ public class ProfileService {
             ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been send to you");
             ActualUser.setVerificationCode(util.generateVerificationCode());
             ActualUser.setEmailVerified(false);
+
             ActualUser.setExpirationAt(LocalDateTime.now().plusMinutes(15));
             emailService.sendVerificationCode(ActualUser.getUniversityEmail(),ActualUser.getVerificationCode());
 

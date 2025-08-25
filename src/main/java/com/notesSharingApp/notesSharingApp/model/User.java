@@ -26,12 +26,14 @@ import java.util.Set;
 public class User implements Serializable {
     @Id
     private String id;
-    @Column(length = 50)
-    private String fullname;
+    @Column(length = 35)
+    private String username;
+    @Column(length = 7)
     private String gender;
     @Column(length = 20,unique = true)
     private String universityEmail;
     private int semester;
+    @Column(length = 2)
     private String department;
     private String password;
     @Column(name = "isEnabled")
@@ -52,8 +54,8 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "reportedUser",cascade = {CascadeType.PERSIST,CascadeType.REMOVE},fetch = FetchType.LAZY)
     @JsonIgnore
     private List<UserReport> reports;
-
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     Set<Role> roles;
+
 }

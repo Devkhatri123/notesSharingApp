@@ -20,7 +20,7 @@ public class TempUser {
     @Id
     private String id;
     @Column(length = 50)
-    private String fullname;
+    private String username;
     private String gender;
     @Column(length = 20)
     private String universityEmail;

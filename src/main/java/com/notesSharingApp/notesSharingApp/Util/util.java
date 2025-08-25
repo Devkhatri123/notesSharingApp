@@ -25,7 +25,7 @@ public class util {
         final userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(user.getId());
-        userDTOWithoutNotes.setFullname(user.getFullname());
+        userDTOWithoutNotes.setUsername(user.getUsername());
         userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
         userDTOWithoutNotes.setSemester(user.getSemester());
         userDTOWithoutNotes.setDepartment(user.getDepartment());

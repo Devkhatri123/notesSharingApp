@@ -9,6 +9,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.Status;
 import com.notesSharingApp.notesSharingApp.model.Subject;
+import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,9 +72,12 @@ public class AdminService {
         // Setting the new values in the subject model object from subject dto
         // by using mapper to reduce boilerplate code
         Subject subject = modelMapper.map(subjectDto,Subject.class);
-        subject.setCreatedBy(profileService.getuser(subjectDto.getCreatedById()));
+       // User createdBy = profileService.getuser(subjectDto.getCreatedById());
+        subject.setCreatedBy(subject.getCreatedBy());
+
         // set who updated the existing subject by extracting user From authenticated User
-        subject.setUpdatedBy(util.getAuthenticatedUser().getUser());
+        if(subject.getCreatedBy().getId().equals(util.getAuthenticatedUser().getUser().getId())) subject.setUpdatedBy(subject.getCreatedBy());
+        else subject.setUpdatedBy(util.getAuthenticatedUser().getUser());
         subject.setUpdatedAt(LocalDate.now());
 
         subjectService.save(subject);

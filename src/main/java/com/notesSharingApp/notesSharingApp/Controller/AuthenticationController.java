@@ -1,9 +1,11 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 
+import com.notesSharingApp.notesSharingApp.DTO.RegisterDTO;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.InvalidDepartment;
 import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
@@ -37,19 +39,20 @@ public class AuthenticationController {
 
 
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@RequestBody User user) {
+    public ResponseEntity<?> signUp(@RequestBody RegisterDTO registerDTO) {
         try {
-            authenticationService.register(user);
-            response.put("message","Registration successful. Verification code sent to your university web mail");
-            return ResponseEntity.ok().body(response);
-        } catch (MessagingException e) {
-            response.put("message","Something went wrong");
+            authenticationService.register(registerDTO);
+            return ResponseEntity.ok().body("Registration successful. Verification code sent to your university web mail");
+        }catch (InvalidDepartment e){
+            return ResponseEntity.badRequest().body("Invalid department selected");
+        }catch (EmailAlreadyInUse e){
+            return ResponseEntity.badRequest().body("Email is already in use");
+        }catch (MessagingException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.internalServerError().body("Something went wrong");
         } catch (RuntimeException e) {
-             response.put("message", "something wrong on server. Registration operation halted. Try again");
              e.printStackTrace();
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.internalServerError().body("Something went wrong");
         }
 
     }

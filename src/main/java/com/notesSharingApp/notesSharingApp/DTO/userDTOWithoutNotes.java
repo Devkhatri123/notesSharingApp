@@ -15,7 +15,7 @@ import java.util.List;
 @EqualsAndHashCode
 public class userDTOWithoutNotes {
     private String id;
-    private String fullname;
+    private String username;
     private String universityEmail;
     private int semester;
     private String department;

@@ -73,7 +73,7 @@ public class ReportService {
            reportResponseDTO.setReason(report.getReason());
            reportResponseDTO.setAdditionalDetails(report.getAdditionalDetails());
            reportResponseDTO.setReportedByUserId(report.getReportedBy().getId());
-           reportResponseDTO.setReportedByUserName(report.getReportedBy().getFullname());
+           reportResponseDTO.setReportedByUserName(report.getReportedBy().getUsername());
            reportResponseDTO.setReportedByUserEmail(report.getReportedBy().getUniversityEmail());
 
            return reportResponseDTO;

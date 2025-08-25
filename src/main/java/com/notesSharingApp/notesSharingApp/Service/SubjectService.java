@@ -69,10 +69,10 @@ public class SubjectService {
         return subjects.stream().map(subject ->{
             SubjectResponseDTO subjectResponseDTO =  modelMapper.map(subject, SubjectResponseDTO.class);
             subjectResponseDTO.setCreatedById(subject.getCreatedBy().getId());
-            subjectResponseDTO.setCreatedByName(subject.getCreatedBy().getFullname());
+            subjectResponseDTO.setCreatedByName(subject.getCreatedBy().getUsername());
             if(subject.getUpdatedBy() != null){
                 subjectResponseDTO.setEditedById(subject.getUpdatedBy().getId());
-                subjectResponseDTO.setEditedByName(subject.getUpdatedBy().getFullname());
+                subjectResponseDTO.setEditedByName(subject.getUpdatedBy().getUsername());
             }
             return subjectResponseDTO;
         }).toList();

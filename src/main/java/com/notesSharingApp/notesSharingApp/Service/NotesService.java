@@ -84,7 +84,7 @@ public class NotesService {
         userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
-        userDTOWithoutNotes.setFullname(n.getCreatedBy().getFullname());
+        userDTOWithoutNotes.setUsername(n.getCreatedBy().getUsername());
         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
 
         notesDto.setId(n.getId());
@@ -132,7 +132,7 @@ public class NotesService {
      foundNote.setRemarks(request.getMessage());
      foundNote.setStatus(Status.Declined);
      notesRepo.save(foundNote);
-     sendRemarkEmail(foundNote.getCreatedBy().getFullname(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
+     sendRemarkEmail(foundNote.getCreatedBy().getUsername(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
     }
     private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
         emailService.sendRemarkNotification(fullname,subject,to,message);

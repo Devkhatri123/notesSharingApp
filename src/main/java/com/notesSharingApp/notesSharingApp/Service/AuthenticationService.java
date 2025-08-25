@@ -1,13 +1,16 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
+import com.notesSharingApp.notesSharingApp.DTO.RegisterDTO;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.InvalidDepartment;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -31,26 +34,27 @@ public class AuthenticationService {
     PasswordEncoder passwordEncoder;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private ModelMapper modelMapper;
 
 
     @Transactional
-    public void register(User user) throws MessagingException,RuntimeException {
-        if(!util.isValidEmail(user.getUniversityEmail())){
+    public void register(RegisterDTO registerDTO) throws MessagingException,RuntimeException {
+        if(!util.isValidEmail(registerDTO.getUniversityEmail())){
             throw new RuntimeException("University email is not valid");
-        }else if (authenticationRepo.findByuniversityEmail(user.getUniversityEmail()) != null){
-            throw new RuntimeException("Email is already in use");
-        }else if(!Arrays.stream(departments).anyMatch(user.getDepartment()::equals)){
-            throw new RuntimeException(user.getDepartment() +" department is not available right now");
+        }else if (authenticationRepo.findByuniversityEmail(registerDTO.getUniversityEmail()) != null){
+            throw new EmailAlreadyInUse("Email is already in use");
+        }else if(!Arrays.stream(departments).anyMatch(registerDTO.getDepartment()::equals)){
+            throw new InvalidDepartment(registerDTO.getDepartment() +" department is not available right now");
         }
 
-
+        User user = modelMapper.map(registerDTO,User.class);
         // set UUId,encode password,role("student") and disable account until verification is done
         user.setId(UUID.randomUUID().toString());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setAccountStatus(AccountStatus.Active);
         user.setEmailVerified(false);
         user.setRoles(Set.of(Role.STUDENT));
-       // user.setRole("STUDENT");
         user.setAccountRemarks("Your email is not verified");
 
         // Verification Code Logic

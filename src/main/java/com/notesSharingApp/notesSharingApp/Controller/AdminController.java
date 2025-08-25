@@ -42,6 +42,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
         catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error in creating new subject. Try again");
         }
     }

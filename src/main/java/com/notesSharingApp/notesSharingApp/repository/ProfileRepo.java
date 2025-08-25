@@ -21,7 +21,7 @@ public interface ProfileRepo extends JpaRepository<User,String> {
     List<User> getAllReportedProfile(PageRequest pageRequest);
     @Query(value = "select count(u) from UserReport u where u.reportedUser.id=:userId")
     List<Object[]> getReportCountOfProfile(@Param("userId") String userId);
-    @Query(value = "select u from User u where lower(u.fullname) like lower(concat('%', :Query ,'%')) or lower(u.universityEmail) like lower(concat('%', :Query ,'%')) ")
+    @Query(value = "select u from User u where lower(u.username) like lower(concat('%', :Query ,'%')) or lower(u.universityEmail) like lower(concat('%', :Query ,'%')) ")
     List<User> searchByFullnameAndUniversityEmail(@Param("Query") String Query, Pageable pageable);
     @Query(value = "update User u set u.accountStatus = \"Active\",u.accountRemarks= \"\" where u.id=:userId ")
     @Modifying

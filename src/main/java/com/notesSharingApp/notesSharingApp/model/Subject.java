@@ -40,8 +40,9 @@ public class Subject implements Serializable {
     private LocalDate createdAt;
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate updatedAt;
-    @ManyToOne
-    @JoinColumn(name = "created_by_id")
+    @ManyToOne(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "created_by_id",foreignKey = @ForeignKey(name = "fk_createdBy_user",
+            foreignKeyDefinition = "FOREIGN KEY (created_by_id) REFERENCES user(id) ON DELETE CASCADE"))
     private User createdBy;
     @ManyToOne
     @JoinColumn(name = "updated_by_id")

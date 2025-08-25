@@ -35,7 +35,7 @@ public class userdetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getFullname();
+        return user.getUsername();
     }
 
     @Override
