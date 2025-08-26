@@ -2,6 +2,10 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
@@ -119,9 +123,15 @@ public class NotesService {
         throw new NoteNotFound("Note not found");
    }
     public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
+        userdetails authenticatedUser = util.getAuthenticatedUser();
+        if(authenticatedUser != null && util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()){
+
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
         return approvalPendingNotes.stream().map(this::getNotesDTO).toList();
-     }
+        }else {
+            throw new NotAllowed("You are not allowed to view approval pending notes. May be your account is disabled or blocked.");
+        }
+        }
 
     public void sendRemark(RemarkRequest request) throws MessagingException {
      Optional<Note> note = notesRepo.findById(request.getId());
@@ -145,7 +155,6 @@ public class NotesService {
         return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
 
     }
-
     public void approveNote(String id) throws NoteNotFound {
      Optional<Note> note = notesRepo.findById(id);
      if(note.isPresent()){

@@ -2,7 +2,7 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import jakarta.mail.MessagingException;

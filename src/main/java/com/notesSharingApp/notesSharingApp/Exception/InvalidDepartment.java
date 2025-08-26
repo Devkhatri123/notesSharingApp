@@ -1,4 +1,4 @@
-package com.notesSharingApp.notesSharingApp.Exception.Account;
+package com.notesSharingApp.notesSharingApp.Exception;
 
 public class InvalidDepartment extends RuntimeException {
     public InvalidDepartment(String message) {

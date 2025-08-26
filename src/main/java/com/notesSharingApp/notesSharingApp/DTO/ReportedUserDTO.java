@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 public class ReportedUserDTO {
     private String id;
-    private String fullname;
+    private String username;
     private String universityEmail;
     private int semester;
     private String department;

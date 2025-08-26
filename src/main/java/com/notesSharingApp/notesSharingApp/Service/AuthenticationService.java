@@ -4,7 +4,7 @@ import com.notesSharingApp.notesSharingApp.DTO.RegisterDTO;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
-import com.notesSharingApp.notesSharingApp.Exception.Account.InvalidDepartment;
+import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;

@@ -2,23 +2,21 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
-import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountVerified;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import com.notesSharingApp.notesSharingApp.model.User;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.ProfileRepo;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
-import jakarta.mail.MessageRemovedException;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;

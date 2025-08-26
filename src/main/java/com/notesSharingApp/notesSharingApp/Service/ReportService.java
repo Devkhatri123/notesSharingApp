@@ -4,6 +4,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 import com.notesSharingApp.notesSharingApp.DTO.ReportedUserDTO;
 import com.notesSharingApp.notesSharingApp.DTO.UserReportRequestDTO;
 import com.notesSharingApp.notesSharingApp.DTO.ReportResponseDTO;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.UserReport;
@@ -35,9 +36,8 @@ public class ReportService {
     public void reportUser(UserReportRequestDTO userReportRequestDTO) {
         Optional<User> reportedUser = profileRepo.findByid(userReportRequestDTO.getReportedUser());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         userdetails authenticatedUser = null;
-        authenticatedUser = (userdetails) authentication.getPrincipal();
+        authenticatedUser = util.getAuthenticatedUser();
         User reportedBy = authenticatedUser.getUser();
         User u = null;
         if(reportedUser.isPresent()) {

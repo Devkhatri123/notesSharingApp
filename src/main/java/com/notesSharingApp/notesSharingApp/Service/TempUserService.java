@@ -1,8 +1,8 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
 
-import com.notesSharingApp.notesSharingApp.Exception.EmailAlreadyInUse;
-import com.notesSharingApp.notesSharingApp.Exception.EmailNotValid;
+import com.notesSharingApp.notesSharingApp.Exception.Account.EmailAlreadyInUse;
+import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotValid;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;

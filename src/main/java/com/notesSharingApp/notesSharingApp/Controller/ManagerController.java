@@ -1,8 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Service.ManagerService;
-import com.notesSharingApp.notesSharingApp.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

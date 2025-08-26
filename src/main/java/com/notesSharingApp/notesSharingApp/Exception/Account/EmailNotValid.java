@@ -1,4 +1,4 @@
-package com.notesSharingApp.notesSharingApp.Exception;
+package com.notesSharingApp.notesSharingApp.Exception.Account;
 
 public class EmailNotValid extends RuntimeException {
     public EmailNotValid(String message) {

@@ -1,6 +1,5 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.notesSharingApp.notesSharingApp.Exception.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.model.Role;
 import com.notesSharingApp.notesSharingApp.model.User;
 import org.springframework.beans.factory.annotation.Autowired;

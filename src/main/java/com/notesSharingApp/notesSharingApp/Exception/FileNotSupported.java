@@ -4,4 +4,5 @@ public class FileNotSupported extends RuntimeException {
     public FileNotSupported(String message) {
         super(message);
     }
+
 }

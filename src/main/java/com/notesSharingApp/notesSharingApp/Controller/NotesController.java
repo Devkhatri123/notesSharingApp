@@ -5,6 +5,10 @@ import com.notesSharingApp.notesSharingApp.DTO.UploadNoteDTO;
 import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
 import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
+import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
+import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,8 +94,14 @@ public class NotesController {
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("admin/ApprovalPendingNotes")
-    public List<notesDTO> getApprovalPendingNotes(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
-        return notesService.getApprovalPendingNotes(pageNumber,limit);
+    public ResponseEntity<?> getApprovalPendingNotes(@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
+        try {
+            return ResponseEntity.ok(notesService.getApprovalPendingNotes(pageNumber, limit));
+        }catch (NotAllowed e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+        }catch (RuntimeException e){
+            return ResponseEntity.internalServerError().body("Internal server error");
+        }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("admin/sendRemarkForNote")
@@ -115,7 +125,6 @@ public class NotesController {
         response.put("count",notesService.getCountsOfNotes(userId));
         return ResponseEntity.ok(response);
     }
-
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
    @PostMapping("/{noteID}/approve")
    public ResponseEntity<?> approveNote(@PathVariable String noteID) {
@@ -126,9 +135,13 @@ public class NotesController {
             response.setHttpStatusCode(HttpStatus.OK);
             return new ResponseEntity<>(response, response.getHttpStatusCode());
         } catch (NoteNotFound e) {
+            e.printStackTrace();
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.NOT_FOUND);
             return new ResponseEntity<>(response, response.getHttpStatusCode());
+        }catch (RuntimeException e){
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Something went wrong");
         }
     }
 

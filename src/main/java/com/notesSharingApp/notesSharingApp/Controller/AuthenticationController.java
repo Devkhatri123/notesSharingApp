@@ -5,7 +5,7 @@ import com.notesSharingApp.notesSharingApp.DTO.RegisterDTO;
 import com.notesSharingApp.notesSharingApp.DTO.loginDTO;
 import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
-import com.notesSharingApp.notesSharingApp.Exception.Account.InvalidDepartment;
+import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;

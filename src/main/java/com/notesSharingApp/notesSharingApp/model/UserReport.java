@@ -28,7 +28,7 @@ public class UserReport {
     @JoinColumn(name = "reported_UserId",referencedColumnName = "id")
     private User reportedUser;
     private String reason;
-    @Column(length = 512)
+    @Column(length = 120)
     private String additionalDetails;
 
 

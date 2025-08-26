@@ -4,13 +4,11 @@ import com.notesSharingApp.notesSharingApp.DTO.SubjectRequestDTO;
 import com.notesSharingApp.notesSharingApp.DTO.SubjectResponseDTO;
 import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
+import com.notesSharingApp.notesSharingApp.Exception.NotAllowed;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectAlreadyExists;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
-import com.notesSharingApp.notesSharingApp.model.Status;
-import com.notesSharingApp.notesSharingApp.model.Subject;
-import com.notesSharingApp.notesSharingApp.model.User;
-import com.notesSharingApp.notesSharingApp.model.userdetails;
+import com.notesSharingApp.notesSharingApp.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +30,10 @@ public class AdminService {
     private ModelMapper modelMapper;
 
     public HashMap<String,Long> getCounts(){
+        userdetails authenticatedUser = util.getAuthenticatedUser();
+        if(authenticatedUser == null){
+            throw new NotLoggedIn("You are not logged in");
+        }
         HashMap<String,Long> countCategories = new HashMap<>();
         countCategories.put("pendingNotes",notesService.getPendingNoteCount() > 0 ? notesService.getPendingNoteCount() : 0);
         countCategories.put("pendingUpdates",profileService.getPendingUpdatesProfiles() > 0 ? profileService.getPendingUpdatesProfiles() : 0);
