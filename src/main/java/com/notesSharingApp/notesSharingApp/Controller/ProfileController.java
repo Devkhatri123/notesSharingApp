@@ -1,8 +1,10 @@
 package com.notesSharingApp.notesSharingApp.Controller;
 
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
-import com.notesSharingApp.notesSharingApp.DTO.userDTOWithoutNotes;
+import com.notesSharingApp.notesSharingApp.DTO.UserDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.Exception.Account.*;
+import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
+import com.notesSharingApp.notesSharingApp.Exception.DecisionAlreadyMade;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import jakarta.mail.MessagingException;
@@ -28,13 +30,10 @@ public class ProfileController {
     public ResponseEntity<?> getUserProfile(@PathVariable String userId){
 
         try {
-            response.put("profile",profileService.getUserProfile(userId));
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(profileService.getUserProfile(userId));
         } catch (RuntimeException e) {
-            response.put("message", e.getMessage());
-            ResponseEntity.notFound();
             if (e instanceof AccountNotFound) return ResponseEntity.notFound().build();
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.internalServerError().body("Internal Server error");
         }
     }
 
@@ -49,13 +48,16 @@ public class ProfileController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }catch (AccountNotFound ex){
            return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) {
+        }catch (UsernameAlreadyTaken ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
             return ResponseEntity.internalServerError().body("Something went wrong on server");
         }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("/all")
-    public List<userDTOWithoutNotes> getProfiles(@RequestParam(name = "query") String query,@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit){
+    public List<UserDTOWithoutNotes> getProfiles(@RequestParam(name = "query") String query, @RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
         return profileService.getProfiles(query,pageNumber,limit);
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
@@ -66,8 +68,6 @@ public class ProfileController {
 
     @GetMapping("/UserInfoUpdateRequestStatus/{userID}")
     public ResponseEntity<?> getUserInfoUpdateRequestStatus(@PathVariable String userID){
-        Map<String,String> statusMap = profileService.getUserInfoUpdateRequestStatus(userID);
-        if(statusMap == null) return new ResponseEntity<>("User not found",HttpStatus.NOT_FOUND);
         return ResponseEntity.ok(profileService.getUserInfoUpdateRequestStatus(userID));
     }
 
@@ -78,13 +78,20 @@ public class ProfileController {
         try {
             profileService.rejectUpdateInfoRequest(userId, remarkRequest);
             return ResponseEntity.ok("Operation completed");
-        } catch (RuntimeException e) {
+        } catch (DecisionAlreadyMade e) {
+           return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AccountNotFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (CharacterLimitExceeded e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (RuntimeException e) {
             e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Something went wrong");
         }
-        return null;
     }
     @DeleteMapping("/UpdateInfoInfo/{userID}")
     public ResponseEntity<?> deleteUpdateInfoRequest(@PathVariable String userID){
+
         profileService.deleteUpdateInfoRequest(userID);
         return ResponseEntity.ok("Request Deleted successfully");
     }
@@ -97,7 +104,9 @@ public class ProfileController {
             return ResponseEntity.ok("Changes applied to user profile");
         } catch (MessagingException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Something went wrong in sending otp");
+            return ResponseEntity.internalServerError().body("Something went wrong in sending otp. Try again");
+        } catch (DecisionAlreadyMade e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Something went wrong on server");
@@ -108,11 +117,9 @@ public class ProfileController {
     public ResponseEntity<?> blockUser(@PathVariable String userId){
         try {
             profileService.blockUser(userId);
-            response.put("message","user blocked successfully");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok("user blocked successfully");
         } catch (RuntimeException e) {
-            response.put("message","user blocked successfully");
-            return ResponseEntity.internalServerError().body(response);
+            return ResponseEntity.internalServerError().body("Internal Server error.");
         }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

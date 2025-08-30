@@ -1,7 +1,6 @@
 package com.notesSharingApp.notesSharingApp.JWT;
 
-import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
-import com.notesSharingApp.notesSharingApp.Util.util;
+import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
@@ -14,11 +13,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.notesSharingApp.notesSharingApp.Service.JwtService;
-import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
+import com.notesSharingApp.notesSharingApp.Service.UserDetailsService;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
@@ -31,7 +31,9 @@ public class jwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtService jwtService;
     @Autowired
-    private userdetailsService userdetailsService;
+    private UserDetailsService userdetailsService;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     @Autowired
     @Qualifier("handlerExceptionResolver")
@@ -46,7 +48,6 @@ public class jwtFilter extends OncePerRequestFilter {
         if(header != null && header.startsWith("Bearer")){
             token = header.substring(7);
         }
-
         if(token == null){
             Cookie[] cookies = request.getCookies();
             if(cookies != null){
@@ -74,8 +75,13 @@ public class jwtFilter extends OncePerRequestFilter {
                     e.printStackTrace();
                 }
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    userdetails user = userdetailsService.loadUserByUsername(username);
-
+                    userdetails user = null;
+                    try {
+                        user = userdetailsService.loadUserByUsername(username);
+                    } catch (UsernameNotFoundException e) {
+                        authenticationService.logout(response);
+                        //return;
+                    }
                     boolean validateToken = jwtService.isTokenValid(token, user);
                     if (validateToken) {
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
@@ -84,9 +90,6 @@ public class jwtFilter extends OncePerRequestFilter {
                     }
                 }
             }
-
-            filterChain.doFilter(request,response);
-
-
-    }
+      filterChain.doFilter(request,response);
+  }
 }

@@ -1,6 +1,7 @@
 package com.notesSharingApp.notesSharingApp.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -9,12 +9,12 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class notesDTO {
+public class NotesDTO {
     private String id;
     private String title;
     private String description;
     private String createdAt;
-    private userDTOWithoutNotes createdBy;
+    private UserDTOWithoutNotes createdBy;
     private String status;
     private String remarks;
     private Subject subject;

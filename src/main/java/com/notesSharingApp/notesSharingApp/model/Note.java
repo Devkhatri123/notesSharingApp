@@ -1,10 +1,13 @@
 package com.notesSharingApp.notesSharingApp.model;
 
 
+import com.notesSharingApp.notesSharingApp.Enum.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.Set;
 
 import java.io.Serializable;
 
@@ -12,7 +15,6 @@ import java.io.Serializable;
 @Setter
 @ToString
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class Note implements Serializable {
     @Id
     @Column(name = "note_id")
@@ -39,18 +41,6 @@ public class Note implements Serializable {
     private byte[] notePdfData;
     private String thumbnailFilename;
     private String pdfNoteFilename;
-
-//    @Override
-//    public boolean equals(Object o) {
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Note note = (Note) o;
-//        return Objects.equals(id, note.id);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-
-
-//        return Objects.hashCode(id);
-//    }
+    @OneToMany(mappedBy = "reportedNote",cascade = {CascadeType.ALL})
+    private Set<NoteReport> reports;
 }

@@ -2,13 +2,12 @@ package com.notesSharingApp.notesSharingApp.Controller;
 
 
 import com.notesSharingApp.notesSharingApp.DTO.UploadNoteDTO;
-import com.notesSharingApp.notesSharingApp.DTO.jsonResponse;
-import com.notesSharingApp.notesSharingApp.DTO.notesDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
+import com.notesSharingApp.notesSharingApp.Exception.Note.FileNotSupported;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import java.util.*;
 public class NotesController {
 
     private final NotesService notesService;
-    final Map<String,String> response = new HashMap<>();
 
     @Autowired
     public NotesController(NotesService notesService){
@@ -69,26 +67,23 @@ public class NotesController {
     }
     @GetMapping
     public ResponseEntity<?> getSubjectNotes(@RequestParam String subjectID,@RequestParam(name = "pageNumber") Integer pageNumber,@RequestParam(name = "limit") Integer limit,@RequestParam(name = "query") String query){
-        jsonResponse response = new jsonResponse();
         try {
-        return new ResponseEntity<>( notesService.getSubjectNotes(subjectID,pageNumber,limit,query), HttpStatus.OK);
+        return new ResponseEntity<>(notesService.getSubjectNotes(subjectID,pageNumber,limit,query), HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            response.setMessage("Internal Server Error");
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             e.printStackTrace();
-            return new ResponseEntity<>(response, response.getHttpStatusCode());
+            return ResponseEntity.internalServerError().body("Internal Server Error");
         }
     }
     @GetMapping("/note/{noteID}")
     public ResponseEntity<?> getNote(@PathVariable String noteID){
         try {
-            return new ResponseEntity<>(notesService.getNote(noteID),HttpStatus.OK);
+            return ResponseEntity.ok(notesService.getNote(noteID));
         }catch (NoteNotFound e) {
             return ResponseEntity.notFound().build();
         }catch (NoSuchElementException e) {
              return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Internal server error. Try again");
         }
     }
@@ -105,17 +100,19 @@ public class NotesController {
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("admin/sendRemarkForNote")
-    public jsonResponse sendRemark(@RequestBody RemarkRequest request) {
-        jsonResponse response = new jsonResponse();
+    public ResponseEntity<?> sendRemark(@RequestBody RemarkRequest request) {
         try {
             notesService.sendRemark(request);
-            response.setMessage("Remark sent successfully");
-            response.setHttpStatusCode(HttpStatus.OK);
+            return ResponseEntity.ok("Remark sent successfully");
         } catch (MessagingException e) {
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Something went wrong. Try again later");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Something went wrong");
         }
-        return response;
     }
 
     @GetMapping("/myNotes")
@@ -125,26 +122,19 @@ public class NotesController {
         response.put("count",notesService.getCountsOfNotes(userId));
         return ResponseEntity.ok(response);
     }
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+   @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
    @PostMapping("/{noteID}/approve")
    public ResponseEntity<?> approveNote(@PathVariable String noteID) {
-        jsonResponse response = new jsonResponse();
         try {
             notesService.approveNote(noteID);
-            response.setMessage("Note approved!!!");
-            response.setHttpStatusCode(HttpStatus.OK);
-            return new ResponseEntity<>(response, response.getHttpStatusCode());
+            return ResponseEntity.ok("Note approved!!!");
         } catch (NoteNotFound e) {
-            e.printStackTrace();
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(response, response.getHttpStatusCode());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }catch (RuntimeException e){
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Something went wrong");
         }
     }
-
        @DeleteMapping("/{noteID}")
        public ResponseEntity<?> deleteNote(@PathVariable String noteID){
          notesService.deleteNote(noteID);

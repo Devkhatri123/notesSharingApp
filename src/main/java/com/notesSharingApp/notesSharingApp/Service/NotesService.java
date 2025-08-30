@@ -1,11 +1,14 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.*;
+import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
+import com.notesSharingApp.notesSharingApp.Enum.Status;
 import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
+import com.notesSharingApp.notesSharingApp.Exception.Note.FileNotSupported;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
@@ -35,6 +38,10 @@ public class NotesService {
     @Autowired
     private ModelMapper modalMapper;
 
+
+    public void saveNote(Note note){
+        notesRepo.save(note);
+    }
     public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note) throws IOException{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
@@ -83,9 +90,9 @@ public class NotesService {
       notesRepo.save(n);
    }
 
-    public notesDTO getNotesDTO(Note n) {
-        notesDTO notesDto = new notesDTO();
-        userDTOWithoutNotes userDTOWithoutNotes = new userDTOWithoutNotes();
+    public NotesDTO getNotesDTO(Note n) {
+        NotesDTO notesDto = new NotesDTO();
+        UserDTOWithoutNotes userDTOWithoutNotes = new UserDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
         userDTOWithoutNotes.setUsername(n.getCreatedBy().getUsername());
@@ -105,7 +112,7 @@ public class NotesService {
     }
 
 
-    public List<notesDTO> getSubjectNotes(String subjectID,Integer pageNumber,Integer limit,String query) {
+    public List<NotesDTO> getSubjectNotes(String subjectID, Integer pageNumber, Integer limit, String query) {
         List<Note> notes;
         if(query.isEmpty()) {
             notes = notesRepo.findBySubjectCode(subjectID, PageRequest.of(pageNumber, limit));
@@ -115,17 +122,16 @@ public class NotesService {
         return notes.stream().map(this::getNotesDTO).toList();
     }
 
-    public Note getNote(String noteID) throws RuntimeException {
-        if(notesRepo.existsByIdAndStatus(noteID,Status.Approved)) {
+    public Note getNote(String noteID) throws NoteNotFound {
+        if(notesRepo.existsById(noteID)) {
             Optional<Note> note = notesRepo.findById(noteID);
             return note.get();
         }
         throw new NoteNotFound("Note not found");
    }
-    public List<notesDTO> getApprovalPendingNotes(Integer pageNumber,Integer limit) {
+    public List<NotesDTO> getApprovalPendingNotes(Integer pageNumber, Integer limit) throws NotAllowed {
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null && util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()){
-
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
         return approvalPendingNotes.stream().map(this::getNotesDTO).toList();
         }else {
@@ -133,7 +139,7 @@ public class NotesService {
         }
         }
 
-    public void sendRemark(RemarkRequest request) throws MessagingException {
+    public void sendRemark(RemarkRequest request) throws MessagingException,NoSuchElementException {
      Optional<Note> note = notesRepo.findById(request.getId());
      if(note.isEmpty()){
          throw new NoSuchElementException("note doesn't exists");
@@ -185,5 +191,21 @@ public class NotesService {
     }
     public long getPendingNoteCount(){
         return notesRepo.countBystatus(Status.Pending);
+    }
+
+    public List<Note> getAllReportedNote(Integer pageNumber,Integer limit){
+        return notesRepo.getAllReportedNote(PageRequest.of(pageNumber,limit));
+    }
+    // Delete note and send note removed email to note owner
+    public void removeNote(String noteID,String removalReason) throws MessagingException,NoteNotFound {
+      if(notesRepo.existsById(noteID)){
+          Optional<Note> noteToBeRemoved = notesRepo.findById(noteID);
+          if(noteToBeRemoved.isPresent()) {
+              notesRepo.delete(noteToBeRemoved.get());
+              emailService.sendNoteRemovalEmail(noteToBeRemoved.get(),removalReason);
+          }else {
+              throw new NoteNotFound("Note not found, note may already has been removed");
+          }
+      }
     }
 }

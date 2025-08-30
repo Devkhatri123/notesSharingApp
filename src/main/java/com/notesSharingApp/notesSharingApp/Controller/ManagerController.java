@@ -13,22 +13,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(("/v1/manager"))
+@PreAuthorize("hasRole('ROLE_MANAGER')")
 public class ManagerController {
 
     @Autowired
     private ManagerService managerService;
 
-    @PreAuthorize("hasRole('ROLE_MANAGER')")
     @PostMapping("/promoteUserToAdmin/{userId}")
     public ResponseEntity<?> promoteUserToAdmin(@PathVariable String userId){
         try {
-            managerService.promoteUserToAdmin(userId);
+            managerService.addAdminRole(userId);
             return ResponseEntity.ok("User promoted to admin successfully");
         }catch (AccountNotFound ex){
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-         }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Internal Server error");
+        }
     }
-    @PreAuthorize("hasRole('ROLE_MANAGER')")
     @PostMapping("/removeAdminRole/{userId}")
     public ResponseEntity<?> removeAdminRole(@PathVariable String userId){
         try {

@@ -33,47 +33,9 @@ public class AdminController {
     public ResponseEntity<?> getCountOfPendingNotes_UserUpdates_ReportedUsersProfiles(){
         try {
             return ResponseEntity.ok(adminService.getCounts());
-        }catch (NotLoggedIn ex){
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
-    }
-    // adding new subject
-    @PostMapping("/addSubject")
-    public ResponseEntity<?> addSubject(@RequestBody SubjectRequestDTO subjectRequestDTO){
-        Map<String,Object> response = new HashMap<>();
-        try {
-            response.put("message","subject created successfully");
-            response.put("NewSubject",adminService.addSubject(subjectRequestDTO));
-            return ResponseEntity.ok(response);
-        } catch (SubjectAlreadyExists e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch (RuntimeException e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error in creating new subject. Try again");
-        }
-    }
-    // Updating subject
-    @PutMapping("/updateSubject")
-    public ResponseEntity<?> updateSubject(@RequestBody SubjectResponseDTO subject){
-        try {
-            adminService.updateSubject(subject);
-            return ResponseEntity.ok("Subject updated successfully");
-        } catch (RuntimeException e) {
-            if(e instanceof SubjectNotFound) return ResponseEntity.notFound().build();
-            else if(e instanceof CharacterLimitExceeded || e instanceof NotLoggedIn) return ResponseEntity.badRequest().body(e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Internal Server Error");
-        }
-    }
-    // Deleting subject
-    @DeleteMapping("/subject/{id}")
-    public ResponseEntity<?> deleteSubject(@PathVariable String id){
-        try{
-           adminService.deleteSubject(id);
-           return ResponseEntity.ok("Subject deleted successfully");
-        } catch (RuntimeException e) {
-           return ResponseEntity.internalServerError().body("Error in deleting subject");
+        }catch (RuntimeException ex){
+            ex.printStackTrace();
+            return ResponseEntity.internalServerError().body("Internal Server error");
         }
     }
 }

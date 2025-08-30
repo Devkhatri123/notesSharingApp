@@ -1,6 +1,5 @@
 package com.notesSharingApp.notesSharingApp.Exception;
 
-import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.http.HttpStatus;
@@ -19,16 +18,12 @@ public class CustomExceptionHandler {
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<?> expiredJwtExceptionHandler(ExpiredJwtException expiredJwtException){
         response.put("message","Token is expired");
-        response.put("status",404);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
     @ExceptionHandler(MalformedJwtException.class)
     public ResponseEntity<?> malFormedJwtException(MalformedJwtException malformedJwtException){
         Map<String,Object> response = new HashMap<>();
         response.put("message","Token has been changed");
-        response.put("status",404);
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }
@@ -41,8 +36,4 @@ public class CustomExceptionHandler {
     public ResponseEntity<?> HttpMediaTypeNotSupportedException(HttpClientErrorException.Forbidden Forbidden){
         return ResponseEntity.internalServerError().body(Forbidden.getMessage());
     }
-//    @ExceptionHandler(NotLoggedIn.class)
-//    public ResponseEntity<?> NotLoggedInException(NotLoggedIn notLoggedIn){
-//        return ResponseEntity.badRequest().body(notLoggedIn.getMessage());
-//    }
 }

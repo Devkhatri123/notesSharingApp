@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.Setter;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -57,5 +58,6 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     Set<Role> roles;
+
 
 }

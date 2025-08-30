@@ -1,6 +1,6 @@
 package com.notesSharingApp.notesSharingApp.repository;
 
-import com.notesSharingApp.notesSharingApp.model.AccountStatus;
+import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;

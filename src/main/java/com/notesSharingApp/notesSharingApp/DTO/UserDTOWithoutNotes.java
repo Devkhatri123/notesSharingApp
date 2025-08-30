@@ -1,7 +1,7 @@
 package com.notesSharingApp.notesSharingApp.DTO;
 
 
-import com.notesSharingApp.notesSharingApp.model.Role;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class userDTOWithoutNotes {
+public class UserDTOWithoutNotes {
     private String id;
     private String username;
     private String universityEmail;

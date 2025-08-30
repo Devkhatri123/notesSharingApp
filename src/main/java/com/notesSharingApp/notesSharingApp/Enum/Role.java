@@ -1,4 +1,4 @@
-package com.notesSharingApp.notesSharingApp.model;
+package com.notesSharingApp.notesSharingApp.Enum;
 
 public enum Role {
     STUDENT,

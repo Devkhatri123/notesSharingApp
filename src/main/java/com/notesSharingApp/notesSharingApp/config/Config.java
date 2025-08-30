@@ -1,8 +1,8 @@
 package com.notesSharingApp.notesSharingApp.config;
 
 import com.notesSharingApp.notesSharingApp.JWT.AuthEntryPoint;
-import com.notesSharingApp.notesSharingApp.Service.userdetailsService;
-import com.notesSharingApp.notesSharingApp.model.Role;
+import com.notesSharingApp.notesSharingApp.Service.UserDetailsService;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +34,7 @@ import java.util.List;
 public class Config {
 
     @Autowired
-    userdetailsService userdetailsService;
+    UserDetailsService userdetailsService;
 
     @Autowired
     private AuthEntryPoint authEntryPoint;
@@ -56,12 +56,14 @@ public class Config {
                 .requestMatchers("v1/auth/signUp").permitAll()
                 .requestMatchers("v1/auth/login").permitAll()
                 .requestMatchers("v1/auth/resendVerificationCode").permitAll()
+                .requestMatchers("v1/auth/resetPasswordToken/{email}").permitAll()
+                .requestMatchers("v1/auth/resetPassword").permitAll()
                 .requestMatchers("v1/auth/verify").permitAll()
                 .requestMatchers("/v1/notes").permitAll()
-                 .requestMatchers("/v1/notes/note/{noteID}").permitAll()
-                 .requestMatchers("/v1/subject/all").permitAll()
-                 .requestMatchers("v1/manager/**").hasRole(Role.MANAGER.name())
-                 .anyRequest().authenticated();
+                .requestMatchers("/v1/notes/note/{noteID}").permitAll()
+                .requestMatchers("/v1/subject/all").permitAll()
+                .requestMatchers("v1/manager/**").hasRole(Role.MANAGER.name())
+                .anyRequest().authenticated();
         })
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
