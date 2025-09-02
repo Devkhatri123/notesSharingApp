@@ -53,9 +53,13 @@ public class SubjectService {
 
     public List<SubjectResponseDTO> getAllSubjectOfUserDepartment(Integer pageNumber, Integer limit, String query, String department) {
        List<Subject> subjects = null;
+       userdetails authenticatedUser = util.getAuthenticatedUser();
        if(!query.isEmpty()) subjects = subjectRepo.getSubjectsByUserDepartmentAndQuery(query,PageRequest.of(pageNumber,limit),department).getContent();
        else subjects = subjectRepo.findAllByDepartment(department,PageRequest.of(pageNumber,limit)).getContent();
-
+       // Filtering subjects and returning only those subjects which are of admin's department
+       subjects = subjects.stream().filter(subject -> {
+           return subject.getDepartment().equalsIgnoreCase(authenticatedUser.getUser().getDepartment());
+       }).toList();
        return convertToSubjectResponseDtoList(subjects);
  }
     public boolean isExistsById(String id){

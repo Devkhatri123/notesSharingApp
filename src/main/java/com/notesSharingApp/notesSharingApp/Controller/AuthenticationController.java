@@ -43,10 +43,17 @@ public class AuthenticationController {
             return ResponseEntity.internalServerError().body("Something went wrong");
         }catch (UsernameAlreadyTaken e){
             return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch (RuntimeException e) {
+        }catch (EmailNotValid e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (CharacterLimitExceeded e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (InvalidSemesterSelected e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (InvalidGenderSelected e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (RuntimeException e) {
              e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Something went wrong");
+            return ResponseEntity.internalServerError().body("Something went wrong. Your account couldn't be created ");
         }
 
     }

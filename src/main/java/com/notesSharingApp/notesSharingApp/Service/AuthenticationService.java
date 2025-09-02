@@ -46,15 +46,21 @@ public class AuthenticationService {
 
 
     @Transactional
-    public void register(RegisterDTO registerDTO) throws MessagingException,UsernameAlreadyTaken,RuntimeException {
+    public void register(RegisterDTO registerDTO) throws MessagingException,UsernameAlreadyTaken,InvalidDepartment,EmailNotValid,EmailAlreadyInUse,CharacterLimitExceeded,InvalidSemesterSelected,InvalidGenderSelected {
         if(!util.isValidEmail(registerDTO.getUniversityEmail())){
-            throw new RuntimeException("University email is not valid");
+            throw new EmailNotValid("University email is not valid");
         }else if(userRepo.existsByUsername(registerDTO.getUsername())){
             throw new UsernameAlreadyTaken("Username is already taken");
         }else if (userRepo.findByuniversityEmail(registerDTO.getUniversityEmail()) != null){
             throw new EmailAlreadyInUse("Email is already in use");
         }else if(!Arrays.stream(departments).anyMatch(registerDTO.getDepartment()::equals)){
             throw new InvalidDepartment(registerDTO.getDepartment() +" department is not available right now");
+        }else if(registerDTO.getUsername().length() > 35){
+            throw new CharacterLimitExceeded("Username should be of 35 characters");
+        } else if(registerDTO.getSemester() <= 0 || registerDTO.getSemester() > 8){
+            throw new InvalidSemesterSelected("Semester can be only between 1-8");
+        } else if (!registerDTO.getGender().equals("Male") && !registerDTO.getGender().equals("Female") && !registerDTO.getGender().equals("Other")){
+             throw new InvalidGenderSelected("Invalid gender selected");
         }
 
         User user = modelMapper.map(registerDTO,User.class);
@@ -156,10 +162,10 @@ public class AuthenticationService {
     }
     private void setJwtInCookies(String token, HttpServletResponse response){
         ResponseCookie cookie = ResponseCookie.from("jwt",token)
-                .secure(false)
+                .secure(true)
+                .sameSite("None")
                 .httpOnly(true)
                 .path("/")
-              //  .domain("localhost")
                 .maxAge(3600)
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
@@ -167,7 +173,8 @@ public class AuthenticationService {
 
     public void logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt")
-                .secure(false)
+                .secure(true)
+                .sameSite("None")
                 .value("")
                 .httpOnly(true)
                 .maxAge(0)

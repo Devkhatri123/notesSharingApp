@@ -5,6 +5,7 @@ import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailAlreadyInUse;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotValid;
 import com.notesSharingApp.notesSharingApp.Exception.Account.UsernameAlreadyTaken;
+import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
@@ -24,9 +25,12 @@ public class TempUserService {
     @Lazy
     private ProfileService profileService;
 
-    public void save(TempUser tempUser) throws EmailNotValid,EmailAlreadyInUse,UsernameAlreadyTaken{
+    public void save(TempUser tempUser) throws EmailNotValid,EmailAlreadyInUse,UsernameAlreadyTaken,CharacterLimitExceeded{
         if(!util.isValidEmail(tempUser.getUniversityEmail())){
             throw new EmailNotValid("Email is not valid");
+        }
+        if(tempUser.getUsername().length() > 35){
+            throw new CharacterLimitExceeded("Username should be of 35 characters");
         }
         userdetails userdetails = util.getAuthenticatedUser();
         if(!userdetails.getUser().getUsername().equalsIgnoreCase(tempUser.getUsername())){

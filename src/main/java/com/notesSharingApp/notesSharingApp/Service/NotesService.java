@@ -9,6 +9,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
 import com.notesSharingApp.notesSharingApp.Exception.Note.FileNotSupported;
+import com.notesSharingApp.notesSharingApp.Exception.Note.FileTooBig;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
@@ -42,7 +43,7 @@ public class NotesService {
     public void saveNote(Note note){
         notesRepo.save(note);
     }
-    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note) throws IOException{
+    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note) throws IOException,FileTooBig{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
@@ -71,6 +72,14 @@ public class NotesService {
       if(notes.getContentType() != null && !notes.getContentType().equalsIgnoreCase("application/pdf")){
           throw new FileNotSupported("Only pdf notes are allowed");
       }
+        System.out.println("thumbnail = " + thumbnail.getSize()/(1024 * 1024));
+        System.out.println("notes = " + notes.getSize()/(1024 * 1024));
+      if(thumbnail.getSize()/(1024 * 1024) > 2){
+          throw new FileTooBig("Only 2mb thumbnail file size is allowed");
+      }
+        if(notes.getSize()/(1024 * 1024) > 2){
+            throw new FileTooBig("Only 2mb pdf file size is allowed");
+        }
       Subject subject = subjectService.getSubjectByCode(note.getSubjectCode());
       if(subject == null){
           throw new SubjectNotFound("Subject not found Against selected code");
@@ -79,7 +88,9 @@ public class NotesService {
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
       n.setImgThumbNail(thumbnail.getBytes());
+      n.setThumbnailFilename(thumbnail.getOriginalFilename());
       n.setNotePdfData(notes.getBytes());
+      n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
@@ -153,9 +164,7 @@ public class NotesService {
     private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
         emailService.sendRemarkNotification(fullname,subject,to,message);
     }
-
-
-    public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
+   public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
         if (status.equals("All")) return getNotes(userId, pageNumber, limit);
         List<Note> notes = notesRepo.findNotesBycreatedBy(userId, Status.valueOf(status), PageRequest.of(pageNumber, limit));
         return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();

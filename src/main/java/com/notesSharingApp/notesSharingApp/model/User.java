@@ -27,7 +27,7 @@ import java.util.Set;
 public class User implements Serializable {
     @Id
     private String id;
-    @Column(length = 35)
+    @Column(length = 35,unique = true)
     private String username;
     @Column(length = 7)
     private String gender;

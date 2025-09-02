@@ -81,16 +81,16 @@ public class ReportController {
     }
 
     // Report Note Section
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+   // @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("/report/note")
     public ResponseEntity<?> reportNote(@RequestBody ReportRequestDTO reportNoteRequestDTO){
        try {
            noteReportService.reportNote(reportNoteRequestDTO);
            return ResponseEntity.ok().body("Report has been sent successfully!!!");
        } catch (NoteNotFound e) {
-           return ResponseEntity.badRequest().body(e.getMessage());
+           return ResponseEntity.notFound().build();
        }catch (AccountNotFound e){
-           return ResponseEntity.badRequest().body(e.getMessage());
+           return ResponseEntity.notFound().build();
        }
        catch (RuntimeException e){
            e.printStackTrace();

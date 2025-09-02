@@ -10,6 +10,7 @@ import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
 import com.notesSharingApp.notesSharingApp.model.User;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.UserRepo;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
@@ -25,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-
 public class ProfileService {
     private final TempUserRepo tempUserRepo;
     private final UserRepo userRepo;
@@ -45,7 +45,7 @@ public class ProfileService {
     // if update information is valid, then tempUser row data will be copied in the main user table
 
      @Transactional
-     public void updateUser(String userId, TempUser user) throws EmailAlreadyInUse, UsernameAlreadyTaken,RuntimeException{
+     public void updateUser(String userId, TempUser user) throws EmailAlreadyInUse, UsernameAlreadyTaken,CharacterLimitExceeded{
         // Fetching the user data from primary user table
         Optional<User> dbUser = userRepo.findById(userId);
         if(dbUser.isPresent()){
@@ -102,11 +102,21 @@ public class ProfileService {
     // If anything goes wrong in updating tempUser or actual user data, then rollback the transaction
     // to make sure the database in consistent
     @Transactional
-    public void approveChanges(String userId) throws MessagingException,DecisionAlreadyMade {
+    public void approveChanges(String userId) throws MessagingException,DecisionAlreadyMade,EmailAlreadyInUse,UsernameAlreadyTaken {
         Optional<TempUser> optionalTempUser = tempUserRepo.findById(userId);
         Optional<User> userOptional = userRepo.findById(userId);
         if (optionalTempUser.isPresent()) {
             TempUser tempUser = optionalTempUser.get();
+            if(!userOptional.get().getUniversityEmail().equalsIgnoreCase(tempUser.getUniversityEmail())) {
+                if (getUserByUniversityEmail(tempUser.getUniversityEmail())) {
+                    throw new EmailAlreadyInUse("Email is already taken by other user");
+                }
+            }
+            if(!userOptional.get().getUsername().equalsIgnoreCase(tempUser.getUsername())) {
+                if (getUserByUsername(tempUser.getUsername())) {
+                    throw new UsernameAlreadyTaken("Username is already taken by other user");
+                }
+            }
                 // Checking whether the request has already been processed
                 if (tempUser.getAccountStatus() == AccountStatus.Approved) {
                     throw new DecisionAlreadyMade("This request has been already approved");
@@ -123,7 +133,7 @@ public class ProfileService {
                 ActualUser.setDepartment(tempUser.getDepartment());
                 ActualUser.setUniversityEmail(tempUser.getUniversityEmail());
 
-                ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been send to you");
+                ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been sent to you");
                 ActualUser.setVerificationCode(util.generateVerificationCode());
                 ActualUser.setEmailVerified(false);
                 ActualUser.setExpirationAt(LocalDateTime.now().plusMinutes(15));
@@ -148,19 +158,30 @@ public class ProfileService {
            tempUserRepo.deleteById(userID);
         }
     }
-    public void blockUser(String userId) {
+    public void blockUser(String userId,String blockReason) throws AccountNotFound,CharacterLimitExceeded {
+        if(blockReason.length() > 512) throw new CharacterLimitExceeded("Reason should be of 512 characters");
         Optional<User> optionalUser = userRepo.findById(userId);
         if(optionalUser.isPresent()){
             User user = optionalUser.get();
             user.setAccountStatus(AccountStatus.Blocked);
-            user.setAccountRemarks("Your account is blocked");
+            user.setAccountRemarks(blockReason);
             userRepo.save(user);
+            return;
         }
+        throw new AccountNotFound("User not found");
     }
 
     public List<UserDTOWithoutNotes> getProfiles(String query, Integer pageNumber, Integer limit) {
         if(!query.isEmpty()) {
+            userdetails authenticatedUser = util.getAuthenticatedUser();
             List<User> profiles = userRepo.searchByFullnameAndUniversityEmail(query, PageRequest.of(pageNumber, limit));
+            if(authenticatedUser.getUser().getRoles().contains(Role.ADMIN)){
+                profiles = profiles.stream().filter(user -> {
+                    return !user.getRoles().contains(Role.ADMIN) && !user.getRoles().contains(Role.MANAGER)
+                            &&
+                            user.getDepartment().equals(authenticatedUser.getUser().getDepartment());
+                }).toList();
+            }
             return profiles.stream().map(util::convertUserModelToDTO).toList();
         }
         return null;

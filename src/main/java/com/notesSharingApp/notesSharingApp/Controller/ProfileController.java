@@ -48,7 +48,10 @@ public class ProfileController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }catch (AccountNotFound ex){
            return ResponseEntity.notFound().build();
-        }catch (UsernameAlreadyTaken ex){
+        }catch (CharacterLimitExceeded ex){
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+        catch (UsernameAlreadyTaken ex){
             return ResponseEntity.badRequest().body(ex.getMessage());
         }catch (RuntimeException ex) {
             ex.printStackTrace();
@@ -107,18 +110,28 @@ public class ProfileController {
             return ResponseEntity.internalServerError().body("Something went wrong in sending otp. Try again");
         } catch (DecisionAlreadyMade e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (RuntimeException e) {
+        }catch (EmailAlreadyInUse e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }catch (UsernameAlreadyTaken e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        catch (RuntimeException e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Something went wrong on server");
         }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("/admin/block/user/{userId}")
-    public ResponseEntity<?> blockUser(@PathVariable String userId){
+    public ResponseEntity<?> blockUser(@PathVariable String userId, @RequestParam String blockReason){
         try {
-            profileService.blockUser(userId);
+            profileService.blockUser(userId,blockReason);
             return ResponseEntity.ok("user blocked successfully");
-        } catch (RuntimeException e) {
+        }catch (CharacterLimitExceeded e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (AccountNotFound e) {
+            return ResponseEntity.notFound().build();
+        }catch (RuntimeException e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Internal Server error.");
         }
     }

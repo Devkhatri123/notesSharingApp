@@ -16,12 +16,15 @@ public class AdminService {
     private ProfileService profileService;
     @Autowired
     private UserReportService userReportService;
+    @Autowired
+    private NoteReportService noteReportService;
 
     public HashMap<String,Long> getCounts(){
         HashMap<String,Long> countCategories = new HashMap<>();
         countCategories.put("pendingNotes",notesService.getPendingNoteCount() > 0 ? notesService.getPendingNoteCount() : 0);
         countCategories.put("pendingUpdates",profileService.getPendingUpdatesProfiles() > 0 ? profileService.getPendingUpdatesProfiles() : 0);
         countCategories.put("reportedUser", userReportService.reportedUserCount() > 0 ? userReportService.reportedUserCount() : 0);
+        countCategories.put("reportedNotes", noteReportService.getCount_Of_ReportedNote() > 0 ? noteReportService.getCount_Of_ReportedNote() : 0);
         return countCategories;
     }
 }

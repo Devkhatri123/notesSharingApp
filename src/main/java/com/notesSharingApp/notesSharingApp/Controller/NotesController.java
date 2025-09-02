@@ -8,6 +8,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsDisabled;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
 import com.notesSharingApp.notesSharingApp.Exception.Note.FileNotSupported;
+import com.notesSharingApp.notesSharingApp.Exception.Note.FileTooBig;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,12 +53,11 @@ public class NotesController {
              response.put("message",e.getMessage());
              e.printStackTrace();
              return ResponseEntity.internalServerError().body(response);
-        }
-         catch (RuntimeException e) {
+        }catch (RuntimeException e) {
              response.put("message",e.getMessage());
              if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled
                      || e instanceof FileNotSupported || e instanceof EmailNotVerified
-                     || e instanceof SubjectNotFound || e instanceof AccountNotFound) {
+                     || e instanceof SubjectNotFound || e instanceof AccountNotFound || e instanceof FileTooBig) {
                  return ResponseEntity.badRequest().body(response);
              }else response.put("message","Internal Server error. Note couldn't be uploaded, try again");
              e.printStackTrace();
@@ -84,7 +84,7 @@ public class NotesController {
              return ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Internal server error. Try again");
+            return ResponseEntity.internalServerError().body("Internal server error.");
         }
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")

@@ -74,4 +74,7 @@ public class NoteReportService {
     public void discardReports(String noteID) {
         noteReportsRepo.deleteByReportedNoteId(noteID);
     }
+    public long getCount_Of_ReportedNote(){
+        return noteReportsRepo.count();
+    }
 }

@@ -5,6 +5,8 @@ import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import lombok.Getter;
 import lombok.Setter;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -17,20 +19,21 @@ import java.util.regex.Pattern;
 @Setter
 public class util {
     public static UserDTOWithoutNotes convertUserModelToDTO(User user){
-        final UserDTOWithoutNotes userDTOWithoutNotes = new UserDTOWithoutNotes();
+      ModelMapper modelMapper = new ModelMapper();
+//        userDTOWithoutNotes.setId(user.getId());
+//        userDTOWithoutNotes.setUsername(user.getUsername());
+//        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
+//        userDTOWithoutNotes.setSemester(user.getSemester());
+//        userDTOWithoutNotes.setDepartment(user.getDepartment());
+//        userDTOWithoutNotes.setEnabled(user.isEnabled());
+//        userDTOWithoutNotes.setGender(user.getGender());
+//        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
+//        userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());
 
-        userDTOWithoutNotes.setId(user.getId());
-        userDTOWithoutNotes.setUsername(user.getUsername());
-        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
-        userDTOWithoutNotes.setSemester(user.getSemester());
-        userDTOWithoutNotes.setDepartment(user.getDepartment());
-        userDTOWithoutNotes.setEnabled(user.isEnabled());
+        UserDTOWithoutNotes userDTOWithoutNotes = modelMapper.map(user, UserDTOWithoutNotes.class);
         userDTOWithoutNotes.setAccountStatus(user.getAccountStatus().toString());
         userDTOWithoutNotes.setAccountRemarks(user.getAccountRemarks());
         userDTOWithoutNotes.setRoles(user.getRoles().stream().toList());
-        userDTOWithoutNotes.setGender(user.getGender());
-        userDTOWithoutNotes.setUniversityEmail(user.getUniversityEmail());
-        userDTOWithoutNotes.setEmailVerified(user.isEmailVerified());
 
         return userDTOWithoutNotes;
     }

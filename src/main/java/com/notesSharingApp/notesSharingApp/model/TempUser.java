@@ -20,7 +20,7 @@ import java.time.LocalDate;
 public class TempUser {
     @Id
     private String id;
-    @Column(length = 50)
+    @Column(length = 35,unique = true)
     private String username;
     private String gender;
     @Column(length = 20)
