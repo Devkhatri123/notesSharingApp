@@ -2,6 +2,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import com.notesSharingApp.notesSharingApp.Enum.Status;
 import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountIsBlocked;
@@ -38,6 +39,8 @@ public class NotesService {
     private EmailService emailService;
     @Autowired
     private ModelMapper modalMapper;
+    @Autowired
+    private ModelMapper modelMapper;
 
 
     public void saveNote(Note note){
@@ -49,7 +52,7 @@ public class NotesService {
             if(!authenticatedUser.getUser().isEmailVerified()){
                 throw new EmailNotVerified("Your email is not verified.You are not allowed to upload the notes");
             }
-            if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
+             if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Disabled){
                 throw new AccountIsDisabled(authenticatedUser.getUser().getAccountRemarks());
             }
             else if(authenticatedUser.getUser().getAccountStatus() == AccountStatus.Blocked){
@@ -69,17 +72,15 @@ public class NotesService {
       if(thumbnail.getContentType() !=null && !thumbnail.getContentType().equalsIgnoreCase("image/jpeg") && !thumbnail.getContentType().equalsIgnoreCase("image/jpg") && !thumbnail.getContentType().equalsIgnoreCase("image/png")){
           throw new FileNotSupported("Only jpeg/png/jpg thumbnails are allowed");
       }
-      if(notes.getContentType() != null && !notes.getContentType().equalsIgnoreCase("application/pdf")){
+      if(notes.getContentType() != null && !notes.getContentType().equalsIgnoreCase("application/pdf")){  // applicaton/pdf
           throw new FileNotSupported("Only pdf notes are allowed");
       }
-        System.out.println("thumbnail = " + thumbnail.getSize()/(1024 * 1024));
-        System.out.println("notes = " + notes.getSize()/(1024 * 1024));
       if(thumbnail.getSize()/(1024 * 1024) > 2){
           throw new FileTooBig("Only 2mb thumbnail file size is allowed");
       }
-        if(notes.getSize()/(1024 * 1024) > 2){
+      if(notes.getSize()/(1024 * 1024) > 2){
             throw new FileTooBig("Only 2mb pdf file size is allowed");
-        }
+      }
       Subject subject = subjectService.getSubjectByCode(note.getSubjectCode());
       if(subject == null){
           throw new SubjectNotFound("Subject not found Against selected code");
@@ -102,28 +103,29 @@ public class NotesService {
    }
 
     public NotesDTO getNotesDTO(Note n) {
-        NotesDTO notesDto = new NotesDTO();
+        NotesDTO notesDto = null;
         UserDTOWithoutNotes userDTOWithoutNotes = new UserDTOWithoutNotes();
 
         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
         userDTOWithoutNotes.setUsername(n.getCreatedBy().getUsername());
         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
 
-        notesDto.setId(n.getId());
-        notesDto.setTitle(n.getTitle());
-        notesDto.setDescription(n.getDescription());
-        notesDto.setCreatedAt(n.getCreatedAt());
-        notesDto.setThumbnail(n.getImgThumbNail());
-        notesDto.setNotes(n.getNotePdfData());
-        notesDto.setRemarks(n.getRemarks());
-        notesDto.setSubject(n.getSubject());
+
+         notesDto = modelMapper.map(n,NotesDTO.class);
+//        notesDto.setId(n.getId());
+//        notesDto.setTitle(n.getTitle());
+//        notesDto.setDescription(n.getDescription());
+//        notesDto.setCreatedAt(n.getCreatedAt());
+         notesDto.setThumbnail(n.getImgThumbNail());
+         notesDto.setNotes(n.getNotePdfData());
+//        notesDto.setRemarks(n.getRemarks());
+//        notesDto.setSubject(n.getSubject());
         notesDto.setStatus(n.getStatus().name());
         notesDto.setCreatedBy(userDTOWithoutNotes);
         return notesDto;
     }
-
-
-    public List<NotesDTO> getSubjectNotes(String subjectID, Integer pageNumber, Integer limit, String query) {
+   // Fetching subject notes
+  public List<NotesDTO> getSubjectNotes(String subjectID, Integer pageNumber, Integer limit, String query) {
         List<Note> notes;
         if(query.isEmpty()) {
             notes = notesRepo.findBySubjectCode(subjectID, PageRequest.of(pageNumber, limit));
@@ -132,7 +134,7 @@ public class NotesService {
         }
         return notes.stream().map(this::getNotesDTO).toList();
     }
-
+    // Finding note in db by noteID
     public Note getNote(String noteID) throws NoteNotFound {
         if(notesRepo.existsById(noteID)) {
             Optional<Note> note = notesRepo.findById(noteID);
@@ -140,10 +142,18 @@ public class NotesService {
         }
         throw new NoteNotFound("Note not found");
    }
+   // Fetching approval pending notes
     public List<NotesDTO> getApprovalPendingNotes(Integer pageNumber, Integer limit) throws NotAllowed {
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null && util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()){
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
+            // Filtering notes, returning only admin's department notes for approval
+            if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER)) {
+                approvalPendingNotes = approvalPendingNotes.stream().filter(note -> {
+                    // Matching admin's department notes
+                    return note.getSubject().getDepartment().equals(authenticatedUser.getUser().getDepartment());
+                }).toList();
+            }
         return approvalPendingNotes.stream().map(this::getNotesDTO).toList();
         }else {
             throw new NotAllowed("You are not allowed to view approval pending notes. May be your account is disabled or blocked.");
@@ -151,19 +161,24 @@ public class NotesService {
         }
 
     public void sendRemark(RemarkRequest request) throws MessagingException,NoSuchElementException {
+        // Finding reported note from db
      Optional<Note> note = notesRepo.findById(request.getId());
      if(note.isEmpty()){
          throw new NoSuchElementException("note doesn't exists");
      }
      Note foundNote = note.get();
+     // setting remarks of note
      foundNote.setRemarks(request.getMessage());
      foundNote.setStatus(Status.Declined);
+        // saving the same note with remarks and declined status
      notesRepo.save(foundNote);
+     // sending the email to user about note has been declined
      sendRemarkEmail(foundNote.getCreatedBy().getUsername(), foundNote.getSubject().getSubjectName(),foundNote.getCreatedBy().getUniversityEmail(), request.getMessage());
     }
     private void sendRemarkEmail(String fullname,String subject,String to,String message) throws MessagingException {
         emailService.sendRemarkNotification(fullname,subject,to,message);
     }
+    // Getting specfic user uploaded notes
    public List<NotesWithoutImagesDTO> myNotes(String userId,String status,Integer pageNumber,Integer limit){
         if (status.equals("All")) return getNotes(userId, pageNumber, limit);
         List<Note> notes = notesRepo.findNotesBycreatedBy(userId, Status.valueOf(status), PageRequest.of(pageNumber, limit));
@@ -184,7 +199,6 @@ public class NotesService {
     private NotesWithoutImagesDTO convertToNotesWithoutImagesDTO(Note n){
        return modalMapper.map(n,NotesWithoutImagesDTO.class);
     }
-
 
     public List<NotesWithoutImagesDTO> getNotes(String userId,Integer pageNumber,Integer limit){
         List<Note> allNotes =  notesRepo.findBycreatedBy(userId,PageRequest.of(pageNumber,limit));

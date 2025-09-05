@@ -6,7 +6,9 @@ import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.DecisionAlreadyMade;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
+import com.notesSharingApp.notesSharingApp.model.User;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,9 +30,12 @@ public class ProfileController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getUserProfile(@PathVariable String userId){
-
+         Map<String,Object> response = new HashMap<>();
         try {
-            return ResponseEntity.ok(profileService.getUserProfile(userId));
+            response.put("profile",profileService.getUserProfile(userId));
+            if(util.getAuthenticatedUser().getUser().getId().equals(userId))
+            response.put("accountStatus",profileService.getUserInfoUpdateRequestStatus(userId));
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             if (e instanceof AccountNotFound) return ResponseEntity.notFound().build();
             return ResponseEntity.internalServerError().body("Internal Server error");
@@ -103,11 +108,12 @@ public class ProfileController {
     @PostMapping("/admin/approveChanges/{userId}")
     public ResponseEntity<String> approveUserInfoUpdateRequest(@PathVariable String userId){
         try {
-            profileService.approveChanges(userId);
+            User user = profileService.approveChanges(userId);
+          //  profileService.notifyUser(user);
             return ResponseEntity.ok("Changes applied to user profile");
         } catch (MessagingException e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Something went wrong in sending otp. Try again");
+            return ResponseEntity.internalServerError().body("Something went wrong in sending otp");
         } catch (DecisionAlreadyMade e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }catch (EmailAlreadyInUse e){

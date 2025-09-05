@@ -35,11 +35,21 @@ public class UserReportService {
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             User reportedBy = authenticatedUser.getUser();
+            // Checking has authenticated user reported the user before, if yes, then
+            // we are updating the found report and saving in db
+            UserReport report = reportRepo.findByReportedByAndReportedUser(reportedBy,reportedUser);
             if (reportedUser != null) {
-                UserReport userReport = modelMapper.map(reportRequestDTO, UserReport.class);
-                userReport.setReportedUser(reportedUser);
-                userReport.setReportedBy(reportedBy);
-                reportRepo.save(userReport);
+                 if(report != null){
+                    // Updating found report
+                    report.setReason(reportRequestDTO.getReason());
+                    report.setAdditionalDetails(reportRequestDTO.getAdditionalDetails());
+                }else {
+                    // creating and setting new values
+                    report = modelMapper.map(reportRequestDTO, UserReport.class);
+                    report.setReportedUser(reportedUser);
+                    report.setReportedBy(reportedBy);
+                }
+                reportRepo.save(report);
             } else {
                 throw new AccountNotFound("Reported User not found");
             }
@@ -59,8 +69,7 @@ public class UserReportService {
     public List<ReportResponseDTO> getUserReports(String userId,Integer pageNumber, Integer limit) {
        List<UserReport> list = reportRepo.getAllReports(userId,PageRequest.of(pageNumber,limit));
        return list.stream().map(report -> {
-
-       ReportResponseDTO  reportResponseDTO = modelMapper.map(report, ReportResponseDTO.class);
+       ReportResponseDTO reportResponseDTO = modelMapper.map(report, ReportResponseDTO.class);
        reportResponseDTO.setReportedByUserId(report.getReportedBy().getId());
        reportResponseDTO.setReportedByUserName(report.getReportedBy().getUsername());
        reportResponseDTO.setReportedByUserEmail(report.getReportedBy().getUniversityEmail());

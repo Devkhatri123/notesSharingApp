@@ -47,22 +47,20 @@ public class NotesController {
          try {
             notesService.uploadNote(thumbnail,notes,note);
             response.put("message","Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
-            response.put("status",HttpStatus.CREATED.value());
             return ResponseEntity.ok().body(response);
         }catch (IOException e) {
-             response.put("message",e.getMessage());
              e.printStackTrace();
-             return ResponseEntity.internalServerError().body(response);
+             return ResponseEntity.internalServerError().body("Internal Server error");
         }catch (RuntimeException e) {
-             response.put("message",e.getMessage());
              if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled
                      || e instanceof FileNotSupported || e instanceof EmailNotVerified
                      || e instanceof SubjectNotFound || e instanceof AccountNotFound || e instanceof FileTooBig) {
-                 return ResponseEntity.badRequest().body(response);
-             }else response.put("message","Internal Server error. Note couldn't be uploaded, try again");
+                 return ResponseEntity.badRequest().body(e.getMessage());
+             }else{
              e.printStackTrace();
-             return ResponseEntity.internalServerError().body(response);
-        }
+             return ResponseEntity.internalServerError().body("Internal Server error. Note couldn't be uploaded, try again");
+             }
+         }
 
     }
     @GetMapping

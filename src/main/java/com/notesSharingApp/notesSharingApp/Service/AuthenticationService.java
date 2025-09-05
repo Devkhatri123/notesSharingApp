@@ -162,8 +162,8 @@ public class AuthenticationService {
     }
     private void setJwtInCookies(String token, HttpServletResponse response){
         ResponseCookie cookie = ResponseCookie.from("jwt",token)
-                .secure(true)
-                .sameSite("None")
+              //  .secure(true)
+              //  .sameSite("None")
                 .httpOnly(true)
                 .path("/")
                 .maxAge(3600)
@@ -173,8 +173,8 @@ public class AuthenticationService {
 
     public void logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt")
-                .secure(true)
-                .sameSite("None")
+               // .secure(true)
+                //.sameSite("None")
                 .value("")
                 .httpOnly(true)
                 .maxAge(0)

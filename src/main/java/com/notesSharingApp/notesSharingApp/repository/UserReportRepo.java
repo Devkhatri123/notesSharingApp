@@ -1,5 +1,6 @@
 package com.notesSharingApp.notesSharingApp.repository;
 
+import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.UserReport;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -20,4 +21,6 @@ public interface UserReportRepo extends JpaRepository<UserReport,String> {
     void deleteById(@Param("userId") String userId);
     @Query(value = "select count(distinct u.reportedUser) from UserReport u")
     long countDistinctByreportedUser();
+
+    UserReport findByReportedByAndReportedUser(User reportedBy, User reportedUser);
 }

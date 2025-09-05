@@ -88,7 +88,7 @@ public class Config {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://study-share-delta.vercel.app"));
+        configuration.setAllowedOrigins(List.of("https://study-share-delta.vercel.app","http://localhost:5173"));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,

@@ -23,11 +23,10 @@ public class TempUser {
     @Column(length = 35,unique = true)
     private String username;
     private String gender;
-    @Column(length = 20)
+    @Column(length = 20,unique = true)
     private String universityEmail;
     private int semester;
     private String department;
-    private String contact;
     @Column(length = 512)
     private String remarks;
     @Enumerated(EnumType.STRING)
