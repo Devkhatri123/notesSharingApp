@@ -5,6 +5,7 @@ import com.notesSharingApp.notesSharingApp.DTO.UserDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.DecisionAlreadyMade;
+import com.notesSharingApp.notesSharingApp.Exception.NotAllowed;
 import com.notesSharingApp.notesSharingApp.Service.ProfileService;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
@@ -32,11 +33,11 @@ public class ProfileController {
     public ResponseEntity<?> getUserProfile(@PathVariable String userId){
          Map<String,Object> response = new HashMap<>();
         try {
-            response.put("profile",profileService.getUserProfile(userId));
-            if(util.getAuthenticatedUser().getUser().getId().equals(userId))
-            response.put("accountStatus",profileService.getUserInfoUpdateRequestStatus(userId));
+            response.put("profile", util.convertUserModelToDTO(profileService.getuser(userId)));
+            if (util.getAuthenticatedUser().getUser().getId().equals(userId))
+                response.put("accountStatus", profileService.getUserInfoUpdateRequestStatus(userId));
             return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
+        }catch (RuntimeException e) {
             if (e instanceof AccountNotFound) return ResponseEntity.notFound().build();
             return ResponseEntity.internalServerError().body("Internal Server error");
         }
@@ -70,8 +71,12 @@ public class ProfileController {
     }
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("admin/ApprovalPendingUserInfo")
-    public List<TempUser> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
-        return profileService.getApprovalPendingUsersInfo(pageNumber,limit);
+    public ResponseEntity<?> getApprovalPendingUsersInfo(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "limit") Integer limit){
+       try {
+           return ResponseEntity.ok(profileService.getApprovalPendingUsersInfo(pageNumber, limit));
+       } catch (NotAllowed e) {
+           return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+       }
     }
 
     @GetMapping("/UserInfoUpdateRequestStatus/{userID}")
@@ -109,7 +114,8 @@ public class ProfileController {
     public ResponseEntity<String> approveUserInfoUpdateRequest(@PathVariable String userId){
         try {
             User user = profileService.approveChanges(userId);
-          //  profileService.notifyUser(user);
+            System.out.println("Thread name = " + Thread.currentThread().getName());
+            profileService.notifyUser(user);
             return ResponseEntity.ok("Changes applied to user profile");
         } catch (MessagingException e) {
             e.printStackTrace();

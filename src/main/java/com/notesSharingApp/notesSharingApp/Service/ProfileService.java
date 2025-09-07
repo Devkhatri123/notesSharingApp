@@ -6,6 +6,7 @@ import com.notesSharingApp.notesSharingApp.Enum.Role;
 import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.DecisionAlreadyMade;
+import com.notesSharingApp.notesSharingApp.Exception.NotAllowed;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
@@ -16,9 +17,9 @@ import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,7 +30,6 @@ import java.util.Optional;
 
 @Service
 public class ProfileService {
-    private final TempUserRepo tempUserRepo;
     private final UserRepo userRepo;
     private final TempUserService tempUserService;
     private final EmailService emailService;
@@ -37,7 +37,6 @@ public class ProfileService {
     @Autowired
     public ProfileService(TempUserRepo tempUserRepo, UserRepo userRepo, TempUserService tempUserService, EmailService emailService, ModelMapper modelMapper){
         this.tempUserService = tempUserService;
-        this.tempUserRepo = tempUserRepo;
         this.userRepo = userRepo;
         this.emailService = emailService;
     }
@@ -57,7 +56,7 @@ public class ProfileService {
             if(u.getVerificationCode() != 0){
                 u.setVerificationCode(0);
                 u.setExpirationAt(null);
-                u.setEmailVerified(true);
+               // u.setEmailVerified(true);
             }
             // Disabling the user account temporarily
             u.setAccountRemarks("Update Info Request Pending Review. Your account is disabled temporarily, it will be enabled once a decision is made by admin");
@@ -69,14 +68,19 @@ public class ProfileService {
     }
 
     // Get update info approval pending request. Only manager/admin can access this
-    public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber, Integer limit) {
-        List<TempUser> profiles = tempUserRepo.getAllPendingProfiles(PageRequest.of(pageNumber,limit));
+    public List<TempUser> getApprovalPendingUsersInfo(Integer pageNumber, Integer limit) throws NotAllowed {
+        List<TempUser> profiles = tempUserService.getAllPending_Profiles(pageNumber,limit);
         userdetails authenticatedUser = util.getAuthenticatedUser();
-        if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER)){
-          profiles = profiles.stream().filter(profile -> {
+
+        if((util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()) || authenticatedUser.getUser().getRoles().contains(Role.MANAGER)){
+        if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER)) {
+            profiles = profiles.stream().filter(profile -> {
                 // Returning only admin's department profiles
                 return profile.getDepartment().equals(authenticatedUser.getUser().getDepartment());
             }).toList();
+        }
+        }else{
+            throw new NotAllowed("Your are not allowed to view approval pending user info update Requests. Your account is blocked or email isn't verified or you would have update you profile and your profile update request would be under review or you dont have permission.");
         }
         return profiles;
     }
@@ -88,11 +92,9 @@ public class ProfileService {
         if(remarkRequest.getMessage().length() > 512){
             throw new CharacterLimitExceeded("Remark message limit is 512 characters");
         }
-        Optional<TempUser> optionalTempUser = tempUserRepo.findById(userId);
+        TempUser tempUser = tempUserService.getTempUser(userId);
         Optional<User> u2 = userRepo.findById(userId);
-        if(optionalTempUser.isPresent()){
-            TempUser tempUser = optionalTempUser.get();
-            if(tempUser.getAccountStatus() == AccountStatus.Approved){
+        if(tempUser.getAccountStatus() == AccountStatus.Approved){
               throw new DecisionAlreadyMade("This request has been already approved");
             }else if (tempUser.getAccountStatus() == AccountStatus.Declined){
                 throw new DecisionAlreadyMade("This request has been already declined");
@@ -106,43 +108,44 @@ public class ProfileService {
                 primaryUser.setAccountRemarks("");
                 userRepo.save(primaryUser);
             }
-        } else throw new AccountNotFound("Decision is already made for this request");
     }
 
     // If anything goes wrong in updating tempUser or actual user data, then rollback the transaction
     // to make sure the database in consistent
     @Transactional
     public User approveChanges(String userId) throws MessagingException,DecisionAlreadyMade,EmailAlreadyInUse,UsernameAlreadyTaken {
-        Optional<TempUser> optionalTempUser = tempUserRepo.findById(userId);
+        TempUser tempUser = tempUserService.getTempUser(userId);
         Optional<User> userOptional = userRepo.findById(userId);
-        if (optionalTempUser.isPresent()) {
-            TempUser tempUser = optionalTempUser.get();
-            User ActualUser = userOptional.get();
+        User ActualUser = userOptional.get();
 
-                // Checking whether had request already been processed
-                if (tempUser.getAccountStatus() == AccountStatus.Approved) {
-                    throw new DecisionAlreadyMade("This request has been already approved");
-                } else if (tempUser.getAccountStatus() == AccountStatus.Declined) {
-                    throw new DecisionAlreadyMade("This request has been already declined");
-                }
-
-                // Setting new values of update request in the user account
-                ActualUser.setUsername(tempUser.getUsername());
-                ActualUser.setSemester(tempUser.getSemester());
-                ActualUser.setGender(tempUser.getGender());
-                ActualUser.setDepartment(tempUser.getDepartment());
-                ActualUser.setUniversityEmail(tempUser.getUniversityEmail());
-
-                ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been sent to you");
-                ActualUser.setVerificationCode(util.generateVerificationCode());
-                ActualUser.setEmailVerified(false);
-                ActualUser.setExpirationAt(LocalDateTime.now().plusMinutes(15));
-
-                tempUserService.approveRequest(tempUser);
-                userRepo.save(ActualUser);
-                return ActualUser;
-     } else throw new DecisionAlreadyMade("Decision is already made for this request");
+        // Checking whether had this request already been processed
+        if (tempUser.getAccountStatus() == AccountStatus.Approved) {
+        throw new DecisionAlreadyMade("This request has been already approved");
+        } else if (tempUser.getAccountStatus() == AccountStatus.Declined) {
+        throw new DecisionAlreadyMade("This request has been already declined");
+        }
+        // set new values in the user account
+        applyChangesToUserAccount(ActualUser,tempUser);
+        tempUserService.approveRequest(tempUser);
+        userRepo.save(ActualUser);
+        return ActualUser;
     }
+
+    // Set new values in user the account
+    private void applyChangesToUserAccount(User ActualUser, TempUser tempUser){
+        // Setting new values of update request in the user account
+        ActualUser.setUsername(tempUser.getUsername());
+        ActualUser.setSemester(tempUser.getSemester());
+        ActualUser.setGender(tempUser.getGender());
+        ActualUser.setDepartment(tempUser.getDepartment());
+        ActualUser.setUniversityEmail(tempUser.getUniversityEmail());
+
+        ActualUser.setAccountRemarks("Update info request has been approved by admin. Please verify Your email through otp. Otp has been sent to you");
+        ActualUser.setVerificationCode(util.generateVerificationCode());
+        ActualUser.setEmailVerified(false);
+        ActualUser.setExpirationAt(LocalDateTime.now().plusMinutes(15));
+    }
+
 
    // sending an email to user of email verification to make sure the new email is valid
    // after the profile update request approval from admin
@@ -151,8 +154,8 @@ public class ProfileService {
     }
     // Get the userInfo update request
     public Map<String,String> getUserInfoUpdateRequestStatus(String userId){
-        if(tempUserRepo.existsById(userId)) {
-            TempUser user = tempUserRepo.findOneByid(userId);
+        if(tempUserService.existsById(userId)) {
+            TempUser user = tempUserService.getTempUser(userId);
             Map<String, String> statusMap = new HashMap<>();
             statusMap.put("remark", user.getRemarks());
             statusMap.put("status", user.getAccountStatus().toString());
@@ -161,8 +164,8 @@ public class ProfileService {
     }
 
     public void deleteUpdateInfoRequest(String userID) {
-        if(tempUserRepo.existsById(userID)) {
-           tempUserRepo.deleteById(userID);
+        if(tempUserService.existsById(userID)) {
+           tempUserService.deleteById(userID);
         }
     }
 
@@ -216,21 +219,16 @@ public class ProfileService {
         userRepo.save(user);
     }
     public long getPendingUpdatesProfiles(){
-     return tempUserRepo.countByaccountStatus(AccountStatus.Pending);
+     return tempUserService.countByAccountStatus(AccountStatus.Pending);
     }
 
-    public UserDTOWithoutNotes getUserProfile(String userId) throws AccountNotFound {
-        Optional<User> OptionalUser = userRepo.findById(userId);
-        if(OptionalUser.isPresent())
-        return util.convertUserModelToDTO(OptionalUser.get());
-        else throw new AccountNotFound("profile not found");
-    }
     public boolean getUserByUniversityEmail(String email){
        return userRepo.existsByUniversityEmail(email);
     }
     public boolean getUserByUsername(String username){
        return userRepo.existsByUsername(username);
     }
+
     // Activate user profile if account Status is disabled
     public void activateProfile(String userId) throws AccountIsBlocked,AccountVerified {
          User user = getuser(userId);

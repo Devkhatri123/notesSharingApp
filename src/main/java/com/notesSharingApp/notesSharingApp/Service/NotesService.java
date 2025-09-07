@@ -145,7 +145,7 @@ public class NotesService {
    // Fetching approval pending notes
     public List<NotesDTO> getApprovalPendingNotes(Integer pageNumber, Integer limit) throws NotAllowed {
         userdetails authenticatedUser = util.getAuthenticatedUser();
-        if(authenticatedUser != null && util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()){
+        if((util.getAuthenticatedUser().getUser().getAccountStatus() == AccountStatus.Active && authenticatedUser.getUser().isEmailVerified()) || authenticatedUser.getUser().getRoles().contains(Role.MANAGER)){
         List<Note> approvalPendingNotes = notesRepo.findApprovalPendingNotes(PageRequest.of(pageNumber,limit));
             // Filtering notes, returning only admin's department notes for approval
             if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER)) {
@@ -156,7 +156,7 @@ public class NotesService {
             }
         return approvalPendingNotes.stream().map(this::getNotesDTO).toList();
         }else {
-            throw new NotAllowed("You are not allowed to view approval pending notes. May be your account is disabled or blocked.");
+            throw new NotAllowed("Your are not allowed to view approval pending notes Requests. Your account is blocked or email isn't verified or you would have update you profile and your profile update request would be under review or you dont have permission.");
         }
         }
 

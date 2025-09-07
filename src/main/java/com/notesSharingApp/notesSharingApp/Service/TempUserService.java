@@ -6,6 +6,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Account.EmailAlreadyInUse;
 import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotValid;
 import com.notesSharingApp.notesSharingApp.Exception.Account.UsernameAlreadyTaken;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
+import com.notesSharingApp.notesSharingApp.Exception.DecisionAlreadyMade;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.model.TempUser;
@@ -13,9 +14,12 @@ import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.TempUserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TempUserService {
@@ -24,6 +28,23 @@ public class TempUserService {
     @Autowired
     @Lazy
     private ProfileService profileService;
+
+    public boolean existsById(String id){
+        return tempUserRepo.existsById(id);
+    }
+    public void deleteById(String id){
+        tempUserRepo.deleteById(id);
+    }
+    public long countByAccountStatus(AccountStatus accountStatus){
+        return tempUserRepo.countByaccountStatus(accountStatus);
+    }
+    public TempUser getTempUser(String id) throws DecisionAlreadyMade{
+      Optional<TempUser> tempUser = tempUserRepo.findById(id);
+        if(tempUser.isPresent()) {
+            return tempUserRepo.findById(id).get();
+        }
+        throw new DecisionAlreadyMade("Decision is already made by admin for this request");
+    }
 
     public void save(TempUser tempUser) throws EmailNotValid,EmailAlreadyInUse,UsernameAlreadyTaken,CharacterLimitExceeded{
         if(!util.isValidEmail(tempUser.getUniversityEmail())){
@@ -57,5 +78,9 @@ public class TempUserService {
         tempUser.setAccountStatus(AccountStatus.Approved);
         tempUser.setRemarks("Your Update Info Request has been Approved, changes have been applied");
         tempUserRepo.save(tempUser);
+    }
+    // get All Approval pending tempUser request
+    public List<TempUser> getAllPending_Profiles(Integer pageNumber,Integer limit){
+       return tempUserRepo.getAllPendingProfiles(PageRequest.of(pageNumber,limit));
     }
 }
