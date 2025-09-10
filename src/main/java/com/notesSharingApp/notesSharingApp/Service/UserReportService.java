@@ -2,6 +2,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 
 import com.notesSharingApp.notesSharingApp.DTO.*;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import com.notesSharingApp.notesSharingApp.Exception.Account.AccountNotFound;
 import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import com.notesSharingApp.notesSharingApp.Util.util;
@@ -57,10 +58,20 @@ public class UserReportService {
             throw new NotLoggedIn("You are not loggedIn");
         }
    }
+   // Get admin's department reported profiles only
     public List<ReportedUserDTO> getReportedProfiles(Integer pageNumber, Integer limit) {
-       List<User> reportedProfile = userRepo.getAllReportedProfile(PageRequest.of(pageNumber,limit));
-        return reportedProfile.stream().map(user -> {
-              ReportedUserDTO reportedUserDTO = modelMapper.map(user,ReportedUserDTO.class);
+       List<User> reportedProfiles = userRepo.getAllReportedProfile(PageRequest.of(pageNumber,limit));
+       userdetails authenticatedUser = util.getAuthenticatedUser();
+       boolean isManager = authenticatedUser.getUser().getRoles().contains(Role.MANAGER);
+       // Checking if admin hasn't manager role
+       if(!isManager){
+           // Filtering admin's department reported profiles
+          reportedProfiles = reportedProfiles.stream().filter(user ->{
+               return user.getDepartment().equals(authenticatedUser.getUser().getDepartment());
+           }).toList();
+       }
+       return reportedProfiles.stream().map(user -> {
+            ReportedUserDTO reportedUserDTO = modelMapper.map(user,ReportedUserDTO.class);
               reportedUserDTO.setReportCount((Long) userRepo.getReportCountOfProfile(reportedUserDTO.getId()).get(0)[0]);
               return reportedUserDTO;
        }).toList();

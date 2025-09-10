@@ -2,9 +2,12 @@ package com.notesSharingApp.notesSharingApp.Service;
 import com.notesSharingApp.notesSharingApp.DTO.ReportNoteResponseDTO;
 import com.notesSharingApp.notesSharingApp.DTO.ReportRequestDTO;
 import com.notesSharingApp.notesSharingApp.DTO.ReportedNoteDTO;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
+import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.Note;
 import com.notesSharingApp.notesSharingApp.model.NoteReport;
 import com.notesSharingApp.notesSharingApp.model.User;
+import com.notesSharingApp.notesSharingApp.model.userdetails;
 import com.notesSharingApp.notesSharingApp.repository.NoteReportsRepo;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -50,7 +53,17 @@ public class NoteReportService {
     // Get ReportedNotes
     public List<ReportedNoteDTO> getAllReportedNote(Integer pageNumber, Integer limit){
         // Fetching reported Notes and converting each note into ReportedNoteDTO object to show only necessary information
-        return notesService.getAllReportedNote(pageNumber,limit).stream().map(
+        List<Note> reportedNotes = notesService.getAllReportedNote(pageNumber,limit);
+        userdetails authenticatedUser = util.getAuthenticatedUser();
+        boolean isManager = authenticatedUser.getUser().getRoles().contains(Role.MANAGER);
+        // Checking if admin hasn't manager role
+        if(!isManager){
+            // Filtering admin's department reported Notes
+            reportedNotes = reportedNotes.stream().filter(note -> {
+                return authenticatedUser.getUser().getDepartment().equals(note.getSubject().getDepartment());
+            }).toList();
+        }
+        return reportedNotes.stream().map(
         note -> {
         ReportedNoteDTO reportedNoteDTO = new ReportedNoteDTO();
         reportedNoteDTO.setNoteID(note.getId());

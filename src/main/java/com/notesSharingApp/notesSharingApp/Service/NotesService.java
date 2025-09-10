@@ -185,6 +185,7 @@ public class NotesService {
         return notes.stream().map(this::convertToNotesWithoutImagesDTO).toList();
 
     }
+    // Approve pending approval note by id
     public void approveNote(String id) throws NoteNotFound {
      Optional<Note> note = notesRepo.findById(id);
      if(note.isPresent()){
