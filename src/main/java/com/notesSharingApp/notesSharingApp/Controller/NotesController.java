@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.NotesService;
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
@@ -51,10 +52,11 @@ public class NotesController {
         }catch (IOException e) {
              e.printStackTrace();
              return ResponseEntity.internalServerError().body("Internal Server error");
-        }catch (RuntimeException e) {
+         } catch (RuntimeException e) {
              if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled
                      || e instanceof FileNotSupported || e instanceof EmailNotVerified
                      || e instanceof SubjectNotFound || e instanceof AccountNotFound || e instanceof FileTooBig) {
+               e.printStackTrace();
                  return ResponseEntity.badRequest().body(e.getMessage());
              }else{
              e.printStackTrace();

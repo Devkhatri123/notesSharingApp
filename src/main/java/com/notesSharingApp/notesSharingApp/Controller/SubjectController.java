@@ -30,14 +30,11 @@ public class SubjectController {
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllSubject(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize,@RequestParam(name = "query") String query){
-        jsonResponse response = new jsonResponse();
         try {
-            return new ResponseEntity<>(subjectService.getAllSubject(pageNumber, pageSize,query),HttpStatus.OK);
+            return ResponseEntity.ok().body(subjectService.getAllSubject(pageNumber, pageSize,query));
         } catch (RuntimeException e) {
             e.printStackTrace();
-            response.setMessage(e.getMessage());
-            response.setHttpStatusCode(HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<>(response,response.getHttpStatusCode());
+           return ResponseEntity.internalServerError().body("Internal Server error");
         }
     }
     // Fetching admin's department subjects

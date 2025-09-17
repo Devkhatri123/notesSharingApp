@@ -162,24 +162,23 @@ public class AuthenticationService {
     }
     private void setJwtInCookies(String token, HttpServletResponse response){
         ResponseCookie cookie = ResponseCookie.from("jwt",token)
-              //  .secure(true)
-              //  .sameSite("None")
+                .secure(true)
+                .sameSite("None")
                 .httpOnly(true)
                 .path("/")
                 .maxAge(3600)
                 .build();
-        response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,cookie.toString());
     }
 
     public void logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt")
-               // .secure(true)
-                //.sameSite("None")
+                .secure(true)
+                .sameSite("None")
                 .value("")
                 .httpOnly(true)
                 .maxAge(0)
                 .path("/")
-               // .domain("localhost")
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE,cookie.toString());
     }

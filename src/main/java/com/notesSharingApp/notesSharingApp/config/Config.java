@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,17 +51,17 @@ public class Config {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception{
         return http.csrf(csrf->csrf.disable())
 
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-               //.exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
+                //.exceptionHandling(exception -> exception.authenticationEntryPoint(new AuthEntryPoint()))
                 .authorizeHttpRequests(auth->{ auth
                 .requestMatchers(HttpMethod.POST,"/v1/admin/**").hasAnyRole(Role.ADMIN.name(),Role.MANAGER.name())
-                .requestMatchers("v1/auth/signUp").permitAll()
-                .requestMatchers("v1/auth/login").permitAll()
-                .requestMatchers("v1/auth/resendVerificationCode").permitAll()
-                .requestMatchers("v1/auth/resetPasswordToken/{email}").permitAll()
-                .requestMatchers("v1/auth/resetPassword").permitAll()
-                .requestMatchers("v1/auth/verify").permitAll()
+                .requestMatchers("/v1/auth/signUp").permitAll()
+                .requestMatchers("/v1/auth/login").permitAll()
+                .requestMatchers("/v1/auth/resendVerificationCode").permitAll()
+                .requestMatchers("/v1/auth/resetPasswordToken/{email}").permitAll()
+                .requestMatchers("/v1/auth/resetPassword").permitAll()
+                .requestMatchers("/v1/auth/verify").permitAll()
                 .requestMatchers("/v1/notes").permitAll()
                 .requestMatchers("/v1/notes/note/{noteID}").permitAll()
                 .requestMatchers("/v1/subject/all").permitAll()
@@ -90,19 +89,32 @@ public class Config {
         return auth;
     }
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://study-share-delta.vercel.app","http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("https://study-share-eta.vercel.app","http://localhost:5173"));
+        configuration.setExposedHeaders(List.of(
+                HttpHeaders.AUTHORIZATION,
+                HttpHeaders.CONTENT_TYPE,
+                HttpHeaders.ACCEPT,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN
+        ));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.ACCEPT));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE"));
+                HttpHeaders.ACCEPT,
+                "Origin",
+                "X-Requested-With",
+                "Cookie",
+                "ngrok-skip-browser-warning"
+        ));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowCredentials(true);
+
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
     @Bean
     public ModelMapper modelMapper(){
         return new ModelMapper();

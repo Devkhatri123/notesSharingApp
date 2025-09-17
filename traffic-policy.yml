@@ -1,0 +1,11 @@
+version: 1
+ingress:
+  - match:    # Match all requests
+      path_prefix: /
+    actions:
+      response_headers:
+        add:
+          Access-Control-Allow-Origin: "https://study-share-eta.vercel.app"
+          Access-Control-Allow-Credentials: "true"
+          Access-Control-Allow-Headers: "Authorization, Content-Type, Accept"
+          Access-Control-Allow-Methods: "GET, POST, PUT, DELETE, OPTIONS"

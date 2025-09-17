@@ -1,0 +1,19 @@
+{
+  "on_http_response": [
+    {
+      "actions": [
+        {
+          "type": "add-headers",
+          "config": {
+            "headers": {
+              "Access-Control-Allow-Origin": "https://study-share-eta.vercel.app",
+              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+              "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
