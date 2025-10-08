@@ -18,6 +18,6 @@ public class NotesDTO {
     private String status;
     private String remarks;
     private Subject subject;
-    private byte[] thumbnail;
-    private byte[] notes;
+    private String thumbnail;
+    private String notes;
 }

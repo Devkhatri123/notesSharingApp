@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,12 @@ public class CustomExceptionHandler {
     }
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<String> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
-        long maxUploadSizeMB = e.getMaxUploadSize() / (1024 * 1024);
         String errorMessage = "File upload failed: 2MB files are allowed.";
         return new ResponseEntity<>(errorMessage, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<String> handle(MissingServletRequestPartException e) {
+        e.printStackTrace();
+        return new ResponseEntity<>("Something went wrong in uploading file", HttpStatus.NOT_FOUND);
     }
 }

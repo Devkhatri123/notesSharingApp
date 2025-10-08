@@ -36,9 +36,9 @@ public class Note implements Serializable {
     @JoinColumn(name = "user_id")
     private User createdBy;
     @Column(name = "note_thumbnail",columnDefinition = "LONGBLOB")
-    private byte[] imgThumbNail;
+    private String imgThumbNail;
     @Column(columnDefinition = "LONGBLOB")
-    private byte[] notePdfData;
+    private String notePdfData;
     private String thumbnailFilename;
     private String pdfNoteFilename;
     @OneToMany(mappedBy = "reportedNote",cascade = {CascadeType.ALL})

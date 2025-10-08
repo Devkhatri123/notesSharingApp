@@ -53,13 +53,12 @@ public class NotesController {
              e.printStackTrace();
              return ResponseEntity.internalServerError().body("Internal Server error");
          } catch (RuntimeException e) {
+             e.printStackTrace();
              if(e instanceof CharacterLimitExceeded || e instanceof AccountIsBlocked || e instanceof AccountIsDisabled
                      || e instanceof FileNotSupported || e instanceof EmailNotVerified
                      || e instanceof SubjectNotFound || e instanceof AccountNotFound || e instanceof FileTooBig) {
-               e.printStackTrace();
                  return ResponseEntity.badRequest().body(e.getMessage());
              }else{
-             e.printStackTrace();
              return ResponseEntity.internalServerError().body("Internal Server error. Note couldn't be uploaded, try again");
              }
          }

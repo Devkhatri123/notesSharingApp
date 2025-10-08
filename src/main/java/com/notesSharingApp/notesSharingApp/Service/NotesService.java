@@ -1,5 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.Enum.Role;
@@ -41,6 +43,8 @@ public class NotesService {
     private ModelMapper modalMapper;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private Cloudinary cloudinary;
 
 
     public void saveNote(Note note){
@@ -88,9 +92,9 @@ public class NotesService {
       Note n = modalMapper.map(note, Note.class);
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
-      n.setImgThumbNail(thumbnail.getBytes());
+      n.setImgThumbNail(uploadThumbnailToCloudinary(thumbnail));
       n.setThumbnailFilename(thumbnail.getOriginalFilename());
-      n.setNotePdfData(notes.getBytes());
+      n.setNotePdfData(uploadPdfToCloudinary(notes));
       n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
@@ -231,5 +235,17 @@ public class NotesService {
               throw new NoteNotFound("Note not found, note may already has been removed");
           }
       }
+    }
+    private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
+        Map uploadParams = ObjectUtils.asMap("resource_type", "image");
+        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
+      //String publicId = (String) uploadedFile.get("url");
+        return (String) uploadedFile.get("secure_url");
+    }
+    private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
+        Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
+        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
+        //String publicId = (String) uploadedFile.get("public_id");
+        return (String) uploadedFile.get("secure_url");
     }
 }
