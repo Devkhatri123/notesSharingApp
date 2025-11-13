@@ -78,7 +78,7 @@ public class EmailService {
               "      Admin Team</p>\n" +
               "    </div>\n" +
               "    <div style=\"background: #f0f0f0; color: #888; text-align: center; padding: 16px 32px; font-size: 13px;\">\n" +
-              "      &copy; 2025 [Your Web App Name]. All rights reserved.\n" +
+              "      &copy; 2025 Study share. All rights reserved.\n" +
               "    </div>\n" +
               "  </div>\n" +
               "</body>\n" +
@@ -148,7 +148,7 @@ public class EmailService {
                       "<h2 style=\"color: #333;\">Reset Your Password</h2>" +
                       "<p style=\"font-size: 16px; color: #555;\">We received a request to reset your password. Click the button below to set a new password.</p>" +
                       "<div style=\"text-align: center; margin: 30px 0;\">" +
-                      "<a href=\"http://localhost:5173/changePassword?reset_token=" + link + "&email="+to+"\"  " +
+                      "<a href=\"https://study-share-eta.vercel.app/changePassword?reset_token=" + link + "&email="+to+"\"  " +
                       "style=\"background-color: #007bff; color: #ffffff; padding: 12px 20px; text-decoration: none; font-size: 16px; border-radius: 5px; display: inline-block;\">" +
                       "Reset Password" +
                       "</a>" +
