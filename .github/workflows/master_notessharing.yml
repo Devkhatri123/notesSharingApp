@@ -12,6 +12,17 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+       DB_URL: ${{ secrets.DB_URL }}
+       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+       JWT_KEY: ${{ secrets.JWT_KEY }}
+       JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+       EMAIL: ${{ secrets.EMAIL }}
+       MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+       CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+       CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -60,17 +71,7 @@ jobs:
           app-name: 'notessharing'
           slot-name: 'Production'
           package: '*.jar'
-          
-          app-settings: |
-             DB_URL=${{ secrets.DB_URL }}
-             DB_USERNAME=${{ secrets.DB_USERNAME }}
-             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-             JWT_KEY=${{ secrets.JWT_KEY }}
-             JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
-             EMAIL=${{ secrets.EMAIL }}
-             MAIL_PASSWORD=${{secrets.MAIL_PASSWORD}}
-             CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}
-             CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-             CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+        
 
           
+
