@@ -39,7 +39,7 @@ public class SubjectController {
     }
     // Fetching admin's department subjects
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-   @GetMapping("/adminDepartmentSubjects")
+    @GetMapping("/adminDepartmentSubjects")
     public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize,@RequestParam(name = "query") String query,@RequestParam(name = "department") String department){
         List<SubjectResponseDTO> subjects = subjectService.getAllSubjectOfUserDepartment(pageNumber,pageSize,query,department);
         return ResponseEntity.ok(subjects);
