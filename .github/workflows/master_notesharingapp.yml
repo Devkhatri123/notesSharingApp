@@ -12,6 +12,17 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      DB_URL: jdbc:mysql://notesharingdb.mysql.database.azure.com:3306/NotesSharingWebApp
+      DB_USERNAME: root
+      DB_PASSWORD: root123
+      EMAIL: khatridev318@gmail.com
+      MAIL_PASSWORD: scic aayf nmxe ajbc
+      JWT_KEY: 710e5e2272eb7de05c53191ffea2d2119e14cc413c1b736eea2fd688155a1b4b
+      JWT_EXPIRATION: 600000
+      CLOUDINARY_NAME: dqd4booas
+      CLOUDINARY_API_SECRET: c4ZfbdNHXPjZd71YXyd3haKholI
+      CLOUDINARY_API_KEY: 948389993151134
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -36,7 +47,7 @@ jobs:
   deploy:
     runs-on: windows-latest
     env:
-      DB_URL: jdbc:mysql://127.0.0.1:3306/NotesSharingWebApp
+      DB_URL: jdbc:mysql://notesharingdb.mysql.database.azure.com:3306/NotesSharingWebApp
       DB_USERNAME: root
       DB_PASSWORD: root123
       EMAIL: khatridev318@gmail.com
@@ -74,4 +85,5 @@ jobs:
           package: '*.jar'
 
           
+
 
