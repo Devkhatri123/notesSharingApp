@@ -71,9 +71,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_3EBAAF437F704B02B6D72BF77A24E105 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_55F5E9B8D0504AE7A0C19F854F1A7D3B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7052EF571AAF48F9BC357A43C81D371C }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -84,3 +84,4 @@ jobs:
           package: '*.jar'
 
           
+
