@@ -12,6 +12,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+       DB_URL: ${{ secrets.DB_URL }}
+       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+       JWT_KEY: ${{ secrets.JWT_KEY }}
+       JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+       EMAIL: ${{ secrets.EMAIL }}
+       MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+       CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+       CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -49,9 +60,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_6702DDA21E37471AAD6B3202B9C70C61 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2D06968F104040B18B4775C6AC54DD52 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FF2F1067773349BF85441C70DF808664 }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -60,4 +71,5 @@ jobs:
           app-name: 'NotesSharing'
           slot-name: 'Production'
           package: '*.jar'
+
           
