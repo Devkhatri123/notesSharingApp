@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - NotesSharingApp
+name: Build and deploy JAR app to Azure Web App - NoteSharingApp
 
 on:
   push:
@@ -80,10 +80,11 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'NotesSharingApp'
+          app-name: 'NoteSharingApp'
           slot-name: 'Production'
           package: '*.jar'
 
           
+
 
 
