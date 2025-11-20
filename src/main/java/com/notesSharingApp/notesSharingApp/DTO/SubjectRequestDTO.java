@@ -12,5 +12,6 @@ public class SubjectRequestDTO {
     private String subjectName;
     private String shortDescription;
     private String code;
+    private String department;
     private int semester;
 }

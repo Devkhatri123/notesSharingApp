@@ -36,6 +36,7 @@ public class User implements Serializable {
     private int semester;
     @Column(length = 2)
     private String department;
+    @JsonIgnore
     private String password;
     @Column(name = "isEnabled")
     private boolean isEnabled;

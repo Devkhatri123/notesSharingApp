@@ -3,6 +3,7 @@ package com.notesSharingApp.notesSharingApp.Service;
 
 import com.notesSharingApp.notesSharingApp.DTO.SubjectRequestDTO;
 import com.notesSharingApp.notesSharingApp.DTO.SubjectResponseDTO;
+import com.notesSharingApp.notesSharingApp.Enum.Role;
 import com.notesSharingApp.notesSharingApp.Exception.Account.NotLoggedIn;
 import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectAlreadyExists;
@@ -54,12 +55,21 @@ public class SubjectService {
     public List<SubjectResponseDTO> getAllSubjectOfUserDepartment(Integer pageNumber, Integer limit, String query, String department) {
        List<Subject> subjects = null;
        userdetails authenticatedUser = util.getAuthenticatedUser();
-       if(!query.isEmpty()) subjects = subjectRepo.getSubjectsByUserDepartmentAndQuery(query,PageRequest.of(pageNumber,limit),department).getContent();
-       else subjects = subjectRepo.findAllByDepartment(department,PageRequest.of(pageNumber,limit)).getContent();
-       // Filtering subjects and returning only those subjects which are of admin's department
-       subjects = subjects.stream().filter(subject -> {
-           return subject.getDepartment().equalsIgnoreCase(authenticatedUser.getUser().getDepartment());
-       }).toList();
+       if(!query.isEmpty()){
+           if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER))
+           subjects = subjectRepo.getSubjectsByUserDepartmentAndQuery(query,PageRequest.of(pageNumber,limit),department).getContent();
+           else subjects = subjectRepo.getSubjectsByQuery(query,PageRequest.of(pageNumber,limit)).getContent();
+       }
+       else{
+           if(!authenticatedUser.getUser().getRoles().contains(Role.MANAGER))
+            subjects = subjectRepo.findAllByDepartment(department,PageRequest.of(pageNumber,limit)).getContent();
+           else subjects= subjectRepo.findAll(PageRequest.of(pageNumber,limit)).getContent();
+       }
+
+//           // Filtering subjects and returning only those subjects which are of admin's department
+//           subjects = subjects.stream().filter(subject -> {
+//               return subject.getDepartment().equalsIgnoreCase(authenticatedUser.getUser().getDepartment());
+//           }).toList();
        return convertToSubjectResponseDtoList(subjects);
  }
     public boolean isExistsById(String id){
@@ -97,7 +107,9 @@ public class SubjectService {
         subject = modelMapper.map(subjectRequestDTO,Subject.class);
         subject.setStatus(Status.Approved);
         subject.setCreatedAt(LocalDate.now());
+        if(!userdetails.getUser().getRoles().contains(Role.MANAGER))
         subject.setDepartment(userdetails.getUser().getDepartment());
+        else subject.setDepartment(subjectRequestDTO.getDepartment());
         subject.setCreatedBy(userdetails.getUser());
 
         subjectRepo.save(subject);

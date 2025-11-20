@@ -8,6 +8,7 @@ import com.notesSharingApp.notesSharingApp.Exception.CharacterLimitExceeded;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectAlreadyExists;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.model.Subject;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class SubjectController {
     // Fetching admin's department subjects
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("/adminDepartmentSubjects")
-    public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize,@RequestParam(name = "query") String query,@RequestParam(name = "department") String department){
+    public ResponseEntity<?> getAllSubjectOfUserDepartment(@RequestParam(name = "pageNumber") Integer pageNumber, @RequestParam(name = "pageSize") Integer pageSize, @Nullable @RequestParam(name = "query") String query, @RequestParam(name = "department") String department){
         List<SubjectResponseDTO> subjects = subjectService.getAllSubjectOfUserDepartment(pageNumber,pageSize,query,department);
         return ResponseEntity.ok(subjects);
     }
