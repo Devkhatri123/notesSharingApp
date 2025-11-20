@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - notessharing
+name: Build and deploy JAR app to Azure Web App - NotesSharing
 
 on:
   push:
@@ -11,7 +11,18 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    env:
+       DB_URL: ${{ secrets.DB_URL }}
+       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+       JWT_KEY: ${{ secrets.JWT_KEY }}
+       JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+       EMAIL: ${{ secrets.EMAIL }}
+       MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+       CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
+       CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+       CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -34,12 +45,12 @@ jobs:
           path: '${{ github.workspace }}/target/*.jar'
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
-
+  
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -49,15 +60,16 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FB16B5AE031F49418EE42F71B050071F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_14F4A80E9DE6414C858C071F27A83291 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_17BF748B5D7C4A53A57F93D1C6919195 }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'notessharing'
+          app-name: 'NotesSharing'
           slot-name: 'Production'
           package: '*.jar'
+
           

@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - NotesSharingApp
+name: Build and deploy JAR app to Azure Web App - NoteSharingApp
 
 on:
   push:
@@ -12,6 +12,17 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{secrets.DB_USERNAME}}
+      DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+      EMAIL: ${{secrets.EMAIL}}
+      MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+      JWT_KEY: ${{secrets.JWT_KEY}}
+      JWT_EXPIRATION: ${{secrets.JWT_EXPIRATION}}
+      CLOUDINARY_NAME: ${{secrets.CLOUDINARY_NAME}}
+      CLOUDINARY_API_SECRET: ${{secrets.CLOUDINARY_API_SECRET}}
+      CLOUDINARY_API_KEY: ${{secrets.CLOUDINARY_API_KEY}}
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -35,19 +46,45 @@ jobs:
 
   deploy:
     runs-on: windows-latest
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{secrets.DB_USERNAME}}
+      DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+      EMAIL: ${{secrets.EMAIL}}
+      MAIL_PASSWORD: ${{secrets.MAIL_PASSWORD}}
+      JWT_KEY: ${{secrets.JWT_KEY}}
+      JWT_EXPIRATION: ${{secrets.JWT_EXPIRATION}}
+      CLOUDINARY_NAME: ${{secrets.CLOUDINARY_NAME}}
+      CLOUDINARY_API_SECRET: ${{secrets.CLOUDINARY_API_SECRET}}
+      CLOUDINARY_API_KEY: ${{secrets.CLOUDINARY_API_KEY}}
     needs: build
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'NotesSharingApp'
+          app-name: 'NoteSharingApp'
           slot-name: 'Production'
           package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C7307FEBFF3A4EF08221900DCD50AEC3 }}
+
+          
+
+
+
