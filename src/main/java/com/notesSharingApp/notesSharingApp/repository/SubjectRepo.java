@@ -19,11 +19,11 @@ public interface SubjectRepo extends JpaRepository<Subject, String> {
     Page<Subject> searchSubject(@Param("query") String query, Pageable pageable);
 
     @Query(value = "select s from Subject s where lower(s.subjectName) like lower(concat('%', :query ,'%')) or lower(s.status) like lower(concat('%', :query ,'%')) or" +
-            " lower(s.code) like lower(concat('%', :query ,'%')) and s.department =:department")
+            " lower(s.code) like lower(concat('%', :query ,'%')) or lower(s.department) like lower(concat('%', :query ,'%')) and s.department =:department")
     Page<Subject> getSubjectsByUserDepartmentAndQuery(@Param("query") String query, Pageable pageable,@Param("department") String department);
 
     @Query(value = "select s from Subject s where lower(s.subjectName) like lower(concat('%', :query ,'%')) or lower(s.status) like lower(concat('%', :query ,'%')) or" +
-            " lower(s.code) like lower(concat('%', :query ,'%')) or lower(s.shortDescription) like lower(concat('%', :query ,'%'))")
+            " lower(s.code) like lower(concat('%', :query ,'%')) or lower(s.shortDescription) like lower(concat('%', :query ,'%')) or lower(s.department) like lower(concat('%', :query ,'%'))")
     Page<Subject> getSubjectsByQuery(@Param("query") String query, Pageable pageable);
     Page<Subject> findAllByDepartment(String department, Pageable pageable);
 
