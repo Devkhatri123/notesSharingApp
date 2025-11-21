@@ -31,7 +31,7 @@ public interface NotesRepo extends JpaRepository<Note, String> {
     @Query("select n from Note n where n.createdBy.id=:userId and n.status=:status")
     List<Note> findNotesBycreatedBy(String userId,Status status,Pageable pageable);
 
-     @Query(value = "select status, count(status) as notes from Note where user_id = ?1 group by status",nativeQuery = true)
+     @Query(value = "select status, count(status) as notes from note where user_id = ?1 group by status",nativeQuery = true)
      List<Object[]> getCountsOfNotes(@Param("userId") String userId);
 
      @Query(value = "delete from Note n where n.id=:id")
