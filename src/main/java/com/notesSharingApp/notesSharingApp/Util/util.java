@@ -3,6 +3,7 @@ package com.notesSharingApp.notesSharingApp.Util;
 import com.notesSharingApp.notesSharingApp.DTO.UserDTOWithoutNotes;
 import com.notesSharingApp.notesSharingApp.model.User;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
@@ -63,5 +64,12 @@ public class util {
     public static int generateVerificationCode() {
         Random random = new Random();
         return random.nextInt(1000, 9999);
+    }
+    public static String getClientIp(HttpServletRequest request){
+        String ip = request.getHeader("X-Forwarded-For");
+        if(ip == null || ip.isBlank()){
+            ip = request.getRemoteAddr();
+        }
+        return ip.split(",")[0].trim();
     }
 }

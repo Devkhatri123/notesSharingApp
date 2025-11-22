@@ -8,8 +8,10 @@ import com.notesSharingApp.notesSharingApp.DTO.VerificationDTO;
 import com.notesSharingApp.notesSharingApp.Exception.*;
 import com.notesSharingApp.notesSharingApp.Exception.Account.*;
 import com.notesSharingApp.notesSharingApp.Service.AuthenticationService;
+import com.notesSharingApp.notesSharingApp.Util.RateLimit.OTP_RATELIMITER;
 import com.notesSharingApp.notesSharingApp.model.userdetails;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,8 +61,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestBody VerificationDTO verificationDTO) {
+    public ResponseEntity<?> verifyUser(@RequestBody VerificationDTO verificationDTO, HttpServletRequest request) {
         try {
+            if(!OTP_RATELIMITER.isAllowed(util.getClientIp(request))){
+                return ResponseEntity.status(429).body("Your otp verification limit has reached, try again tomorrow");
+            }
             authenticationService.verify(verificationDTO);
             return ResponseEntity.ok().body("Verification successful!");
         } catch (RuntimeException ex) {
