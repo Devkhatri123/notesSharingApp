@@ -82,8 +82,8 @@ public class NotesService {
       if(thumbnail.getSize()/(1024 * 1024) > 2){
           throw new FileTooBig("Only 2mb thumbnail file size is allowed");
       }
-      if(notes.getSize()/(1024 * 1024) > 2){
-            throw new FileTooBig("Only 2mb pdf file size is allowed");
+      if(notes.getSize()/(1024 * 1024) > 15){
+            throw new FileTooBig("Only 15mb pdf file size is allowed");
       }
       Subject subject = subjectService.getSubjectByCode(note.getSubjectCode());
       if(subject == null){

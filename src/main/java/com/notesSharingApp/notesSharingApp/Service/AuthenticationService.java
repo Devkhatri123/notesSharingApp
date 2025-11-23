@@ -74,7 +74,7 @@ public class AuthenticationService {
 
         // Verification Code Logic
         user.setVerificationCode(util.generateVerificationCode());
-        user.setExpirationAt(LocalDateTime.now().plusMinutes(15));
+        user.setExpirationAt(LocalDateTime.now().plusMinutes(3));
         User savedUser = userRepo.save(user);
         if(userRepo.findById(savedUser.getId()).isPresent()) {
             sendVerificationCode(user.getUniversityEmail(), user.getVerificationCode());
@@ -145,7 +145,7 @@ public class AuthenticationService {
             throw new AccountVerified("Account is already verified");
         }
         user.setVerificationCode(util.generateVerificationCode());
-        user.setExpirationAt(LocalDateTime.now().plusMinutes(15));
+        user.setExpirationAt(LocalDateTime.now().plusMinutes(3));
         sendVerificationCode(user.getUniversityEmail(),user.getVerificationCode());
         userRepo.save(user);
   }

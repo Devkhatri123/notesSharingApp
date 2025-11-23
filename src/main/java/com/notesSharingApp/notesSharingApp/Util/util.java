@@ -63,7 +63,7 @@ public class util {
     }
     public static int generateVerificationCode() {
         Random random = new Random();
-        return random.nextInt(1000, 9999);
+        return random.nextInt(100000, 999999);
     }
     public static String getClientIp(HttpServletRequest request){
         String ip = request.getHeader("X-Forwarded-For");
