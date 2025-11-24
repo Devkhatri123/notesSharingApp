@@ -44,7 +44,7 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(errorMessage, HttpStatus.PAYLOAD_TOO_LARGE);
     }
     @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<String> handle(MissingServletRequestPartException e) {
+    public ResponseEntity<String> handleMissingRequestPart(MissingServletRequestPartException e) {
         e.printStackTrace();
         return new ResponseEntity<>("Something went wrong in uploading file", HttpStatus.NOT_FOUND);
     }

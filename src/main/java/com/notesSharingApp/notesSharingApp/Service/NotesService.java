@@ -82,8 +82,8 @@ public class NotesService {
       if(thumbnail.getSize()/(1024 * 1024) > 2){
           throw new FileTooBig("Only 2mb thumbnail file size is allowed");
       }
-      if(notes.getSize()/(1024 * 1024) > 20){
-            throw new FileTooBig("Only 15mb pdf file size is allowed");
+      if(notes.getSize()/(1024 * 1024) > 10){
+            throw new FileTooBig("Only 10mb pdf file size is allowed");
       }
       Subject subject = subjectService.getSubjectByCode(note.getSubjectCode());
       if(subject == null){
@@ -238,13 +238,13 @@ public class NotesService {
     }
     private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
         Map uploadParams = ObjectUtils.asMap("resource_type", "image");
-        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
+        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getInputStream(),uploadParams);
       //String publicId = (String) uploadedFile.get("url");
         return (String) uploadedFile.get("secure_url");
     }
     private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
         Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
-        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
+        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getInputStream(),uploadParams);
         //String publicId = (String) uploadedFile.get("public_id");
         return (String) uploadedFile.get("secure_url");
     }

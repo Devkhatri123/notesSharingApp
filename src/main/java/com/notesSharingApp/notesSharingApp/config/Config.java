@@ -2,7 +2,6 @@ package com.notesSharingApp.notesSharingApp.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.notesSharingApp.notesSharingApp.JWT.AuthEntryPoint;
 import com.notesSharingApp.notesSharingApp.Service.UserDetailsService;
 import com.notesSharingApp.notesSharingApp.Enum.Role;
 import org.modelmapper.ModelMapper;

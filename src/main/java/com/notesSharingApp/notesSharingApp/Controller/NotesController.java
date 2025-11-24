@@ -10,6 +10,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Account.EmailNotVerified;
 import com.notesSharingApp.notesSharingApp.Exception.Note.FileNotSupported;
 import com.notesSharingApp.notesSharingApp.Exception.Note.FileTooBig;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
+import io.jsonwebtoken.security.Request;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ public class NotesController {
         this.notesService = notesService;
     }
 
-
+    @CrossOrigin(originPatterns = {"http://localhost:5173"},methods = {RequestMethod.POST})
     @PostMapping(value = "/uploadNote",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadNotes(
                                @RequestPart(value = "thumbnail") MultipartFile thumbnail,

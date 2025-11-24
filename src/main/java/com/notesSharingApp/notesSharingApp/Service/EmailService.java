@@ -65,13 +65,6 @@ public class EmailService {
               "        <!-- Add more list items as needed -->\n" +
               "      </ul>\n" +
               "      <p>\n" +
-              "        Please review and update your notes accordingly.\n" +
-              "      </p>\n" +
-              "      <a href=\"[Link to Update Page]\" \n" +
-              "         style=\"display: inline-block; background: #2563eb; color: #fff !important; padding: 12px 28px; margin: 24px 0; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 16px;\">\n" +
-              "         Update My Notes\n" +
-              "      </a>\n" +
-              "      <p>\n" +
               "        If you have any questions or need clarification, please reply to this email.\n" +
               "      </p>\n" +
               "      <p style=\"margin-bottom: 0;\">Best regards,<br>\n" +
