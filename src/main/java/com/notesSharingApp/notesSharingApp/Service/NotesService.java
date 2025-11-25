@@ -231,13 +231,13 @@ public class NotesService {
     }
     private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
         Map uploadParams = ObjectUtils.asMap("resource_type", "image");
-        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getInputStream(),uploadParams);
+        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
       //String publicId = (String) uploadedFile.get("url");
         return (String) uploadedFile.get("secure_url");
     }
     private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
         Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
-        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getInputStream(),uploadParams);
+        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
         //String publicId = (String) uploadedFile.get("public_id");
         return (String) uploadedFile.get("secure_url");
     }
