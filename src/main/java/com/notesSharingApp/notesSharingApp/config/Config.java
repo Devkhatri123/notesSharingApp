@@ -114,7 +114,8 @@ public class Config {
                 "Origin",
                 "X-Requested-With",
                 "Cookie",
-                "ngrok-skip-browser-warning"
+                "ngrok-skip-browser-warning",
+                "user_TimeZone"
         ));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowCredentials(true);

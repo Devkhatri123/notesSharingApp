@@ -12,6 +12,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Note.FileTooBig;
 import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import io.jsonwebtoken.security.Request;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.Service.NotesService;
 import com.notesSharingApp.notesSharingApp.DTO.RemarkRequest;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -37,17 +39,19 @@ public class NotesController {
         this.notesService = notesService;
     }
 
-    @CrossOrigin(origins = {"https://study-share-eta.vercel.app","localhost:5173"},methods = {RequestMethod.POST})
+    @CrossOrigin(origins = {"https://study-share-eta.vercel.app","http://localhost:5173"}, methods = {RequestMethod.POST})
     @PostMapping(value = "/uploadNote",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadNotes(
                                @RequestPart(value = "thumbnail") MultipartFile thumbnail,
                                @RequestPart(value = "notes") MultipartFile notes,
-                               @RequestPart(value = "note") UploadNoteDTO note
+                               @RequestPart(value = "note") UploadNoteDTO note,
+                               @RequestHeader("user_TimeZone") String timeZone
+
 
     ){
         Map<String,Object> response = new HashMap<>();
          try {
-            notesService.uploadNote(thumbnail,notes,note);
+            notesService.uploadNote(thumbnail,notes,note,timeZone);
             response.put("message","Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
             return ResponseEntity.ok().body(response);
         }catch (IOException e) {

@@ -17,6 +17,7 @@ import com.notesSharingApp.notesSharingApp.Exception.Subject.SubjectNotFound;
 import com.notesSharingApp.notesSharingApp.Util.util;
 import com.notesSharingApp.notesSharingApp.model.*;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ import com.notesSharingApp.notesSharingApp.repository.NotesRepo;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +52,7 @@ public class NotesService {
     public void saveNote(Note note){
         notesRepo.save(note);
     }
-    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note) throws IOException,FileTooBig{
+    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note,String userTimeZone) throws IOException,FileTooBig{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
@@ -99,7 +101,8 @@ public class NotesService {
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-      n.setCreatedAt(LocalDateTime.now().format(formatter));
+      ZoneId zoneId = ZoneId.of(userTimeZone);
+      n.setCreatedAt(LocalDateTime.now(zoneId).format(formatter));
       if(n.getId().isBlank()) {
       n.setId(UUID.randomUUID().toString());
       }
