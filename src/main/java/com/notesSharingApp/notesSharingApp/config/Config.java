@@ -109,6 +109,7 @@ public class Config {
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
                 HttpHeaders.ACCEPT,
                 "Origin",
                 "X-Requested-With",
