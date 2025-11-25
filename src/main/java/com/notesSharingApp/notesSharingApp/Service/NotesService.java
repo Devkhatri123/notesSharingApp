@@ -107,26 +107,19 @@ public class NotesService {
    }
 
     public NotesDTO getNotesDTO(Note n) {
-        NotesDTO notesDto = null;
-        UserDTOWithoutNotes userDTOWithoutNotes = new UserDTOWithoutNotes();
+         NotesDTO notesDto = null;
+         UserDTOWithoutNotes userDTOWithoutNotes = new UserDTOWithoutNotes();
 
-        userDTOWithoutNotes.setId(n.getCreatedBy().getId());
-        userDTOWithoutNotes.setUsername(n.getCreatedBy().getUsername());
-        userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
-
+         userDTOWithoutNotes.setId(n.getCreatedBy().getId());
+         userDTOWithoutNotes.setUsername(n.getCreatedBy().getUsername());
+         userDTOWithoutNotes.setSemester(n.getCreatedBy().getSemester());
 
          notesDto = modelMapper.map(n,NotesDTO.class);
-//        notesDto.setId(n.getId());
-//        notesDto.setTitle(n.getTitle());
-//        notesDto.setDescription(n.getDescription());
-//        notesDto.setCreatedAt(n.getCreatedAt());
          notesDto.setThumbnail(n.getImgThumbNail());
          notesDto.setNotes(n.getNotePdfData());
-//        notesDto.setRemarks(n.getRemarks());
-//        notesDto.setSubject(n.getSubject());
-        notesDto.setStatus(n.getStatus().name());
-        notesDto.setCreatedBy(userDTOWithoutNotes);
-        return notesDto;
+         notesDto.setStatus(n.getStatus().name());
+         notesDto.setCreatedBy(userDTOWithoutNotes);
+         return notesDto;
     }
    // Fetching subject notes
   public List<NotesDTO> getSubjectNotes(String subjectID, Integer pageNumber, Integer limit, String query) {
