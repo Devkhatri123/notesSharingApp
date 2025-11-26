@@ -45,15 +45,14 @@ public class NotesController {
                                @RequestPart(value = "thumbnail") MultipartFile thumbnail,
                                @RequestPart(value = "notes") MultipartFile notes,
                                @RequestPart(value = "note") UploadNoteDTO note,
-                               @RequestHeader("user_TimeZone") String timeZone,
                                HttpServletRequest request
 
 
     ){
         Map<String,Object> response = new HashMap<>();
          try {
-             System.out.println("User time zone : " + request.getHeader("user_TimeZone"));
-            notesService.uploadNote(thumbnail,notes,note,timeZone,request);
+             System.out.println("User time zone : " + request.getHeader("user-TimeZone"));
+            notesService.uploadNote(thumbnail,notes,note,request);
             response.put("message","Notes sent to admin for review. It will be available to users within 2-3 days if everything is ok in notes");
             return ResponseEntity.ok().body(response);
         }catch (IOException e) {
