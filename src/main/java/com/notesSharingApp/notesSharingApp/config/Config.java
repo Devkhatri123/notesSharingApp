@@ -104,7 +104,8 @@ public class Config {
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT,
-                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN
+                HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                "user_TimeZone"
         ));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
