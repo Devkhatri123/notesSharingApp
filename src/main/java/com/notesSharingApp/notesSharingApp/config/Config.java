@@ -105,7 +105,7 @@ public class Config {
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT,
                 HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                "user_TimeZone"
+                "user-TimeZone"
         ));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
@@ -116,7 +116,7 @@ public class Config {
                 "X-Requested-With",
                 "Cookie",
                 "ngrok-skip-browser-warning",
-                "user_TimeZone"
+                "user-TimeZone"
         ));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowCredentials(true);
