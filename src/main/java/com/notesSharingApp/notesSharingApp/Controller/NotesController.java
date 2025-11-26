@@ -39,7 +39,7 @@ public class NotesController {
         this.notesService = notesService;
     }
 
-    @CrossOrigin(origins = {"https://study-share-eta.vercel.app","http://localhost:5173"}, methods = {RequestMethod.POST})
+   // @CrossOrigin(origins = {"https://study-share-eta.vercel.app","http://localhost:5173"}, methods = {RequestMethod.POST})
     @PostMapping(value = "/uploadNote",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> uploadNotes(
                                @RequestPart(value = "thumbnail") MultipartFile thumbnail,
