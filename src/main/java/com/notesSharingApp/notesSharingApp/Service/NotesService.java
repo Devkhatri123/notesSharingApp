@@ -52,7 +52,7 @@ public class NotesService {
     public void saveNote(Note note){
         notesRepo.save(note);
     }
-    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note,String userTimeZone) throws IOException,FileTooBig{
+    public void uploadNote(MultipartFile thumbnail, MultipartFile notes, UploadNoteDTO note,String userTimeZone,HttpServletRequest request) throws IOException,FileTooBig{
         userdetails authenticatedUser = util.getAuthenticatedUser();
         if(authenticatedUser != null) {
             if(!authenticatedUser.getUser().isEmailVerified()){
@@ -101,7 +101,7 @@ public class NotesService {
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-      ZoneId zoneId = ZoneId.of(userTimeZone);
+      ZoneId zoneId = ZoneId.of(request.getHeader("user_TimeZone"));
       n.setCreatedAt(LocalDateTime.now(zoneId).format(formatter));
       if(n.getId().isBlank()) {
       n.setId(UUID.randomUUID().toString());
