@@ -1,5 +1,7 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.notesSharingApp.notesSharingApp.DTO.*;
@@ -20,11 +22,15 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.repository.NotesRepo;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -47,6 +53,10 @@ public class NotesService {
     private ModelMapper modelMapper;
     @Autowired
     private Cloudinary cloudinary;
+    @Value("${cloud.aws.bucketName}")
+    private String bucketName;
+    @Autowired
+    private AmazonS3 s3Client;
 
 
     public void saveNote(Note note){
@@ -94,9 +104,9 @@ public class NotesService {
       Note n = modalMapper.map(note, Note.class);
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
-      n.setImgThumbNail(uploadThumbnailToCloudinary(thumbnail));
+      n.setImgThumbNail(uploadThumbnailToAwsS3(thumbnail));
       n.setThumbnailFilename(thumbnail.getOriginalFilename());
-      n.setNotePdfData(uploadPdfToCloudinary(notes));
+      n.setNotePdfData(uploadThumbnailToAwsS3(notes));
       n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
@@ -243,5 +253,22 @@ public class NotesService {
         Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
         //String publicId = (String) uploadedFile.get("public_id");
         return (String) uploadedFile.get("secure_url");
+    }
+    private String uploadThumbnailToAwsS3(MultipartFile thumbnail) throws IOException{
+        File convertedFile = convertMultiPartToFile(thumbnail);
+        s3Client.putObject(new PutObjectRequest(bucketName,thumbnail.getOriginalFilename(),convertedFile));
+        convertedFile.delete();
+        String url = s3Client.getUrl(bucketName,thumbnail.getOriginalFilename()).toExternalForm();
+        System.out.println("url : " + url);
+        return url;
+    }
+    private File convertMultiPartToFile(MultipartFile multipartFile) throws IOException{
+    File convertedFile = new File(multipartFile.getOriginalFilename());
+    try(FileOutputStream fos = new FileOutputStream(convertedFile)){
+        fos.write(multipartFile.getBytes());
+    } catch (IOException e) {
+        throw new IOException(e);
+    }
+    return convertedFile;
     }
 }
