@@ -63,9 +63,6 @@ public class AuthenticationController {
     @PostMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestBody VerificationDTO verificationDTO, HttpServletRequest request) {
         try {
-            if(!OTP_RATELIMITER.isAllowed(util.getClientIp(request))){
-                return ResponseEntity.status(429).body("Your otp verification limit has reached, try again tomorrow");
-            }
             authenticationService.verify(verificationDTO);
             return ResponseEntity.ok().body("Verification successful!");
         } catch (RuntimeException ex) {
