@@ -104,9 +104,9 @@ public class NotesService {
       Note n = modalMapper.map(note, Note.class);
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
-      n.setImgThumbNail(uploadThumbnailToAwsS3(thumbnail));
+      n.setImgThumbNail(uploadThumbnailToAwsS3(thumbnail)); // Upload Thumbnail to aws
       n.setThumbnailFilename(thumbnail.getOriginalFilename());
-      n.setNotePdfData(uploadThumbnailToAwsS3(notes));
+      n.setNotePdfData(uploadThumbnailToAwsS3(notes)); // Upload notes to aws
       n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
@@ -242,24 +242,24 @@ public class NotesService {
           }
       }
     }
-    private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
-        Map uploadParams = ObjectUtils.asMap("resource_type", "image");
-        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
-      //String publicId = (String) uploadedFile.get("url");
-        return (String) uploadedFile.get("secure_url");
-    }
-    private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
-        Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
-        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
-        //String publicId = (String) uploadedFile.get("public_id");
-        return (String) uploadedFile.get("secure_url");
-    }
+//    private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
+//        Map uploadParams = ObjectUtils.asMap("resource_type", "image");
+//        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
+//      //String publicId = (String) uploadedFile.get("url");
+//        return (String) uploadedFile.get("secure_url");
+//    }
+//    private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
+//        Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
+//        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
+//        //String publicId = (String) uploadedFile.get("public_id");
+//        return (String) uploadedFile.get("secure_url");
+//    }
+
     private String uploadThumbnailToAwsS3(MultipartFile thumbnail) throws IOException{
         File convertedFile = convertMultiPartToFile(thumbnail);
         s3Client.putObject(new PutObjectRequest(bucketName,thumbnail.getOriginalFilename(),convertedFile));
         convertedFile.delete();
         String url = s3Client.getUrl(bucketName,thumbnail.getOriginalFilename()).toExternalForm();
-        System.out.println("url : " + url);
         return url;
     }
     private File convertMultiPartToFile(MultipartFile multipartFile) throws IOException{
