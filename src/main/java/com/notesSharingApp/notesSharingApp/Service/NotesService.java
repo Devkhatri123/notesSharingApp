@@ -51,8 +51,8 @@ public class NotesService {
     private ModelMapper modalMapper;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private Cloudinary cloudinary;
+//    @Autowired
+//    private Cloudinary cloudinary;
     @Value("${cloud.aws.bucketName}")
     private String bucketName;
     @Autowired
@@ -255,11 +255,11 @@ public class NotesService {
 //        return (String) uploadedFile.get("secure_url");
 //    }
 
-    private String uploadThumbnailToAwsS3(MultipartFile thumbnail) throws IOException{
-        File convertedFile = convertMultiPartToFile(thumbnail);
-        s3Client.putObject(new PutObjectRequest(bucketName,thumbnail.getOriginalFilename(),convertedFile));
+    private String uploadThumbnailToAwsS3(MultipartFile multipartFile) throws IOException{
+        File convertedFile = convertMultiPartToFile(multipartFile);
+        s3Client.putObject(new PutObjectRequest(bucketName,multipartFile.getOriginalFilename(),convertedFile));
         convertedFile.delete();
-        String url = s3Client.getUrl(bucketName,thumbnail.getOriginalFilename()).toExternalForm();
+        String url = s3Client.getUrl(bucketName,multipartFile.getOriginalFilename()).toExternalForm();
         return url;
     }
     private File convertMultiPartToFile(MultipartFile multipartFile) throws IOException{

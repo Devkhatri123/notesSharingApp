@@ -46,14 +46,14 @@ public class Config {
     @Autowired
     UserDetailsService userdetailsService;
 
-    @Value("${cloudinary.cloud_name}")
-    private String cloudName;
-
-    @Value("${cloudinary.api_key}")
-    private String apiKey;
-
-    @Value("${cloudinary.api_secret}")
-    private String apiSecret;
+//    @Value("${cloudinary.cloud_name}")
+//    private String cloudName;
+//
+//    @Value("${cloudinary.api_key}")
+//    private String apiKey;
+//
+//    @Value("${cloudinary.api_secret}")
+//    private String apiSecret;
     @Value("${cloud.aws.credentials.secret-key}")
     private String aws_Secret_key;
     @Value("${cloud.aws.credentials.access-key}")
@@ -155,13 +155,13 @@ public class Config {
     }
 
     // Cloud Config
-    @Bean
-    public Cloudinary getCloudinary(){
-        return new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", cloudName,
-                "api_key", apiKey,
-                "api_secret", apiSecret));
-    }
+//    @Bean
+//    public Cloudinary getCloudinary(){
+//        return new Cloudinary(ObjectUtils.asMap(
+//                "cloud_name", cloudName,
+//                "api_key", apiKey,
+//                "api_secret", apiSecret));
+//    }
 
     // S3 Configuration
     @Bean
