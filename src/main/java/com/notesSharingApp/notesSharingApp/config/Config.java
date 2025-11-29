@@ -1,12 +1,5 @@
 package com.notesSharingApp.notesSharingApp.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.notesSharingApp.notesSharingApp.Service.UserDetailsService;
 import com.notesSharingApp.notesSharingApp.Enum.Role;
 import org.modelmapper.ModelMapper;
@@ -36,6 +29,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 import java.util.concurrent.Executor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableWebSecurity
@@ -45,15 +40,6 @@ public class Config {
 
     @Autowired
     UserDetailsService userdetailsService;
-
-//    @Value("${cloudinary.cloud_name}")
-//    private String cloudName;
-//
-//    @Value("${cloudinary.api_key}")
-//    private String apiKey;
-//
-//    @Value("${cloudinary.api_secret}")
-//    private String apiSecret;
     @Value("${cloud.aws.credentials.secret-key}")
     private String aws_Secret_key;
     @Value("${cloud.aws.credentials.access-key}")
@@ -154,20 +140,12 @@ public class Config {
 
     }
 
-    // Cloud Config
-//    @Bean
-//    public Cloudinary getCloudinary(){
-//        return new Cloudinary(ObjectUtils.asMap(
-//                "cloud_name", cloudName,
-//                "api_key", apiKey,
-//                "api_secret", apiSecret));
-//    }
-
     // S3 Configuration
     @Bean
-    public AmazonS3 generateAmazonS3(){
-        AWSCredentials awsCredentials = new BasicAWSCredentials(aws_access_key,aws_Secret_key);
-        return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withRegion(aws_s3_region).build();
+    public S3Client generateAmazonS3() {
+       return S3Client.builder()
+             .region(Region.US_EAST_1)
+               .forcePathStyle(true)
+                .build();
     }
 }

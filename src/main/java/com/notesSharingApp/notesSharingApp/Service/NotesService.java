@@ -1,9 +1,5 @@
 package com.notesSharingApp.notesSharingApp.Service;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.notesSharingApp.notesSharingApp.DTO.*;
 import com.notesSharingApp.notesSharingApp.Enum.AccountStatus;
 import com.notesSharingApp.notesSharingApp.Enum.Role;
@@ -23,11 +19,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.notesSharingApp.notesSharingApp.repository.NotesRepo;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,7 +54,7 @@ public class NotesService {
     @Value("${cloud.aws.bucketName}")
     private String bucketName;
     @Autowired
-    private AmazonS3 s3Client;
+    private S3Client s3Client;
 
 
     public void saveNote(Note note){
@@ -104,9 +102,9 @@ public class NotesService {
       Note n = modalMapper.map(note, Note.class);
       n.setSubject(subject);
       n.setCreatedBy(authenticatedUser.getUser());
-      n.setImgThumbNail(uploadThumbnailToAwsS3(thumbnail)); // Upload Thumbnail to aws
+      n.setImgThumbNail(uploadThumbnailToAwsS3(thumbnail,"images")); // Upload Thumbnail to aws
       n.setThumbnailFilename(thumbnail.getOriginalFilename());
-      n.setNotePdfData(uploadThumbnailToAwsS3(notes)); // Upload notes to aws
+      n.setNotePdfData(uploadThumbnailToAwsS3(notes,"notesPdfs")); // Upload notes to aws
       n.setPdfNoteFilename(notes.getOriginalFilename());
       n.setStatus(Status.Pending);
       n.setRemarks("Pending review.");
@@ -242,33 +240,20 @@ public class NotesService {
           }
       }
     }
-//    private String uploadThumbnailToCloudinary(MultipartFile thumbnail) throws IOException {
-//        Map uploadParams = ObjectUtils.asMap("resource_type", "image");
-//        Map uploadedFile =  cloudinary.uploader().upload(thumbnail.getBytes(),uploadParams);
-//      //String publicId = (String) uploadedFile.get("url");
-//        return (String) uploadedFile.get("secure_url");
-//    }
-//    private String uploadPdfToCloudinary(MultipartFile notePdf) throws IOException {
-//        Map uploadParams = ObjectUtils.asMap("resource_type", "raw");
-//        Map uploadedFile =  cloudinary.uploader().upload(notePdf.getBytes(),uploadParams);
-//        //String publicId = (String) uploadedFile.get("public_id");
-//        return (String) uploadedFile.get("secure_url");
-//    }
 
-    private String uploadThumbnailToAwsS3(MultipartFile multipartFile) throws IOException{
-        File convertedFile = convertMultiPartToFile(multipartFile);
-        s3Client.putObject(new PutObjectRequest(bucketName,multipartFile.getOriginalFilename(),convertedFile));
-        convertedFile.delete();
-        String url = s3Client.getUrl(bucketName,multipartFile.getOriginalFilename()).toExternalForm();
-        return url;
-    }
-    private File convertMultiPartToFile(MultipartFile multipartFile) throws IOException{
-    File convertedFile = new File(multipartFile.getOriginalFilename());
-    try(FileOutputStream fos = new FileOutputStream(convertedFile)){
-        fos.write(multipartFile.getBytes());
-    } catch (IOException e) {
-        throw new IOException(e);
-    }
-    return convertedFile;
+    private String uploadThumbnailToAwsS3(MultipartFile multipartFile,String folderName) throws IOException{
+        software.amazon.awssdk.services.s3.model.PutObjectRequest objectRequest = software.amazon.awssdk.services.s3.model.PutObjectRequest.
+                 builder()
+                .bucket(bucketName)
+                .key(folderName+"/"+multipartFile.getOriginalFilename())
+                .build();
+        s3Client.putObject(objectRequest, RequestBody.fromBytes(multipartFile.getBytes()));
+        // Object url
+        return s3Client.utilities().
+                getUrl(GetUrlRequest.builder().
+                        bucket(bucketName).
+                        key(folderName+"/"+multipartFile.getOriginalFilename()).
+                        build()).
+                toExternalForm().toString();
     }
 }
