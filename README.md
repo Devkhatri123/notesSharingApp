@@ -22,4 +22,10 @@ About the app:
 
 • Manager can create subjects for any department
 
-• Admin can approve notes, handle reports, and manage profile update requests for their own department • Manager/Admin can disable accounts for violations • Admin can create subjects of thier own department • Users can view their own uploaded notes and update their profile
+• Admin can approve notes, handle reports, and manage profile update requests for their own department 
+
+• Manager/Admin can disable accounts for violations 
+
+• Admin can create subjects of thier own department 
+
+• Users can view their own uploaded notes and update their profile
